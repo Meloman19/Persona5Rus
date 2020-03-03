@@ -5,6 +5,14 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persona5Rus", "Persona5Rus\Persona5Rus.csproj", "{13A00DDC-3998-4FAC-81BB-513384BD3B11}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{72F70905-0163-4D51-B88E-1475AD40540F}"
+	ProjectSection(SolutionItems) = preProject
+		SolutionItems\AuxiliaryLibraries.dll = SolutionItems\AuxiliaryLibraries.dll
+		SolutionItems\AuxiliaryLibraries.WPF.dll = SolutionItems\AuxiliaryLibraries.WPF.dll
+		SolutionItems\AuxiliaryLibraries.WPF.Wrapper.dll = SolutionItems\AuxiliaryLibraries.WPF.Wrapper.dll
+		SolutionItems\PersonaEditorLib.dll = SolutionItems\PersonaEditorLib.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

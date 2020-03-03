@@ -29,12 +29,24 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\Release\Persona5Rus\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AuxiliaryLibraries">
+      <HintPath>..\SolutionItems\AuxiliaryLibraries.dll</HintPath>
+    </Reference>
+    <Reference Include="AuxiliaryLibraries.WPF">
+      <HintPath>..\SolutionItems\AuxiliaryLibraries.WPF.dll</HintPath>
+    </Reference>
+    <Reference Include="AuxiliaryLibraries.WPF.Wrapper">
+      <HintPath>..\SolutionItems\AuxiliaryLibraries.WPF.Wrapper.dll</HintPath>
+    </Reference>
+    <Reference Include="PersonaEditorLib">
+      <HintPath>..\SolutionItems\PersonaEditorLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -55,6 +67,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\Static.cs" />
+    <Compile Include="Common\TextHelper.cs" />
+    <Compile Include="Converters\BooleanNegativeConverter.cs" />
+    <Compile Include="VIewModel\BindableBase.cs" />
+    <Compile Include="VIewModel\MainWindowViewModel.cs" />
+    <Compile Include="VIewModel\RelayCommand.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

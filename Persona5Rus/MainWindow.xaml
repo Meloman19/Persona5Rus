@@ -7,6 +7,18 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBox IsReadOnly="True"
+                 TextWrapping="Wrap"
+                 Text="{Binding OutputText}" />
+
+        <Button Content="Сделать хорошо"
+                Grid.Row="1"
+                Command="{Binding MakeGoodCommand}"
+                IsEnabled="{Binding OnProcess, Converter={StaticResource BooleanNegativeConverter}, FallbackValue=False}" />
     </Grid>
 </Window>
