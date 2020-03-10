@@ -4,8 +4,46 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Persona5Rus"
+        xmlns:vm="clr-namespace:Persona5Rus.ViewModel"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:TaskProgress}">
+            <Border BorderBrush="Black"
+                    BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Height" Value="100"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Success, Mode=OneWay}" Value="False">
+                                <Setter Property="Background" Value="LightPink"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Success, Mode=OneWay}" Value="True">
+                                <Setter Property="Background" Value="LightGreen"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="{Binding Title}"
+                               HorizontalAlignment="Left"/>
+                    
+                    <ProgressBar Grid.Row="1"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding Progress}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -14,7 +52,15 @@
 
         <TextBox IsReadOnly="True"
                  TextWrapping="Wrap"
-                 Text="{Binding OutputText}" />
+                 Text="{Binding OutputText}"
+                 Visibility="{Binding OnProcess, Converter={StaticResource BooleanToVisibilityNegativeConverter}}"
+                 ScrollViewer.VerticalScrollBarVisibility="Visible" />
+
+        <ScrollViewer Visibility="{Binding OnProcess, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Visible">
+            <ItemsControl ItemsSource="{Binding Tasks}"/>
+        </ScrollViewer>
 
         <Button Content="Сделать хорошо"
                 Grid.Row="1"

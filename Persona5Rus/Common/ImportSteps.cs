@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using AuxiliaryLibraries.Tools;
 using PersonaEditorLib;
 using PersonaEditorLib.Text;
 
 namespace Persona5Rus.Common
 {
-    static class TextHelper
+    static class ImportSteps
     {
-        public static void ImportTextToPTP(string PTPDir, string NewTextDir)
+        public static void ImportTextToPTP(string PTPDir, string NewTextDir, IProgress<double> progress)
         {
             //Logging.Write("ImportTextToPTP started");
             string NAMEfile = Path.Combine(NewTextDir, "names.tsv");
@@ -50,9 +51,12 @@ namespace Persona5Rus.Common
 
             foreach (var ptpDir in DIRS)
             {
+                var progressValue = (double)DIRSindex / (double)DIRS.Length * 100;
+                progress.Report(progressValue);
+
                 DIRSindex++;
-                string DIRSconsole = $"\rПапка: {DIRSindex.ToString().PadLeft(temp)}\\{DIRSlength}";
-                Console.Write(DIRSconsole);
+                string DIRSconsole = $"Папка: {DIRSindex.ToString().PadLeft(temp)}\\{DIRSlength}";
+                //output(DIRSconsole);
 
                 string importTXT = Path.Combine(NewTextDir, Path.GetFileName(ptpDir) + ".tsv");
                 if (!File.Exists(importTXT))
@@ -102,7 +106,49 @@ namespace Persona5Rus.Common
             //Console.WriteLine("\rИмпорт перевода в PTP файлы завершён.");
         }
 
-        public static void PackPTPtoSource(string sourceDir, string ptpDir, string ptpDuplicates)
+        public static void CopySourceFiles(string src, string dst, IProgress<double> progress)
+        {
+            Directory.Delete(dst, true);
+            Thread.Sleep(1000);
+            var totalFiles = Directory.GetFiles(src, "*", SearchOption.AllDirectories).Length;
+            int processedFiles = 0;
+            CopyTree(src, dst, progress, totalFiles, ref processedFiles);
+        }
+
+        private static void CopyTree(string src, string dst, IProgress<double> progress, int totalFiles, ref int processedFiles)
+        {
+            DirectoryInfo dir = new DirectoryInfo(src);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException("Папки не существует: " + src);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(dst))
+            {
+                Directory.CreateDirectory(dst);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(dst, file.Name);
+                file.CopyTo(temppath, true);
+                processedFiles++;
+                progress.Report((double)processedFiles / (double)totalFiles * 100);
+            }
+
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string temppath = Path.Combine(dst, subdir.Name);
+                CopyTree(subdir.FullName, temppath, progress, totalFiles, ref processedFiles);
+            }
+        }
+
+        public static void PackPTPtoSource(string sourceDir, string ptpDir, string ptpDuplicates, IProgress<double> progress)
         {
             #region Read Duplicate
 
@@ -128,6 +174,9 @@ namespace Persona5Rus.Common
             string length = FILES.Length.ToString();
             for (int i = 0; i < FILES.Length; i++)
             {
+                var progressValue = (double)i / (double)FILES.Length * 100;
+                progress.Report(progressValue);
+
                 Console.Write($"\rFile: {i.ToString().PadLeft(length.Length)}\\{length}");
 
                 var file = GameFormatHelper.OpenFile(Path.GetFileName(FILES[i]), File.ReadAllBytes(FILES[i]));
@@ -143,8 +192,19 @@ namespace Persona5Rus.Common
 
                         if (File.Exists(path))
                         {
-                            PTP PTP = new PTP(File.ReadAllBytes(path));
-                            a.GameData = new BMD(PTP, Static.NewEncoding());
+                            PTP PTP;
+                            try
+                            {
+                                PTP = new PTP(File.ReadAllBytes(path));
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception($"Ошибка в открытии PTP файла: {path}", ex);
+                            }
+                            a.GameData = new BMD(PTP, Static.NewEncoding())
+                            {
+                                IsLittleEndian = false
+                            };
                         }
                         else if (DUPLICATES.ContainsKey(relPath) && File.Exists(Path.Combine(ptpDir, DUPLICATES[relPath])))
                         {

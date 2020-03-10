@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
-namespace Persona5Rus.VIewModel
+namespace Persona5Rus.ViewModel
 {
     class BindableBase : INotifyPropertyChanged
     {

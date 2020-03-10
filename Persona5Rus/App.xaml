@@ -6,5 +6,7 @@
              Startup="Application_Startup">
     <Application.Resources>
         <converters:BooleanNegativeConverter x:Key="BooleanNegativeConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanToVisibilityNegativeConverter x:Key="BooleanToVisibilityNegativeConverter"/>
     </Application.Resources>
 </Application>

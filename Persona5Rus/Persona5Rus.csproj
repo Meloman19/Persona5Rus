@@ -67,12 +67,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\ImportSteps.cs" />
     <Compile Include="Common\Static.cs" />
-    <Compile Include="Common\TextHelper.cs" />
     <Compile Include="Converters\BooleanNegativeConverter.cs" />
-    <Compile Include="VIewModel\BindableBase.cs" />
-    <Compile Include="VIewModel\MainWindowViewModel.cs" />
-    <Compile Include="VIewModel\RelayCommand.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\BooleanToVisibilityNegativeConverter.cs" />
+    <Compile Include="ViewModel\BindableBase.cs" />
+    <Compile Include="ViewModel\MainWindowViewModel.cs" />
+    <Compile Include="ViewModel\RelayCommand.cs" />
+    <Compile Include="ViewModel\TaskProgress.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

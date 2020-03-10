@@ -1,11 +1,13 @@
 ﻿using Persona5Rus.Common;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace Persona5Rus.VIewModel
+namespace Persona5Rus.ViewModel
 {
     class MainWindowViewModel : BindableBase
     {
@@ -16,7 +18,7 @@ namespace Persona5Rus.VIewModel
         private static readonly string OutputPath = "Output";
         private static readonly string DuplicatesPath = "PTP_DUPLICATE.txt";
 
-
+        private bool _onWork;
         private bool _onProcess;
         private string _outputText;
 
@@ -39,113 +41,77 @@ namespace Persona5Rus.VIewModel
             set { SetProperty(ref _onProcess, value); }
         }
 
+        public ObservableCollection<TaskProgress> Tasks { get; } = new ObservableCollection<TaskProgress>();
+
         private async void MakeGood()
         {
-            if (OnProcess)
+            if (_onWork)
             {
                 return;
             }
 
+            if (OnProcess)
+            {
+                OnProcess = false;
+                return;
+            }
+
+            Tasks.Clear();
             OnProcess = true;
+            _onWork = true;
 
-            try
+            foreach (var task in GetTasks())
             {
-                await Task.Run(Rus);
-            }
-            catch(Exception ex)
-            {
-                AddText(ex.Message);
-                AddText(ex.StackTrace);
+                Tasks.Add(task);
             }
 
-            OnProcess = false;
+            foreach (var task in Tasks)
+            {
+                await task.RunAsync();
+
+                if (task.Success == false)
+                {
+                    break;
+                }
+            }
+
+            _onWork = false;
         }
 
-        private void Rus()
+        private IEnumerable<TaskProgress> GetTasks()
         {
-            RunInDispatcher(() => OutputText = string.Empty);
-
             var ptpSourcePath = Path.Combine(BasePath, SourcePath, PTPPath);
             var ptpTextPath = Path.Combine(BasePath, TextPath, PTPPath);
             var ptpPath = Path.Combine(BasePath, PTPPath);
             var outputPath = Path.Combine(BasePath, OutputPath);
             var duplPath = Path.Combine(BasePath, TextPath, DuplicatesPath);
 
-            AddText("Импортируем перевод в PTP файлы...");
-
-            try
+            yield return new TaskProgress()
             {
-                TextHelper.ImportTextToPTP(ptpPath, ptpTextPath);
-            }
-            catch(Exception ex)
+                Title = "Импортируем перевод в PTP файлы...",
+                Action = progress =>
+                {
+                    ImportSteps.ImportTextToPTP(ptpPath, ptpTextPath, progress);
+                }
+            };
+
+            yield return new TaskProgress()
             {
-                AddText(ex.Message);
-                return;
-            }
+                Title = "Копируем оригинальные файлы в выходную папку для дальнейшей обработки...",
+                Action = progress =>
+                {
+                    ImportSteps.CopySourceFiles(ptpSourcePath, outputPath, progress);
+                }
+            };
 
-            AddText("Копируем оригинальные файлы в выходную папку для дальнейшей обработки...");
-
-            try
+            yield return new TaskProgress()
             {
-                Directory.Delete(outputPath, true);
-                Thread.Sleep(1000);
-                CopyTree(ptpSourcePath, outputPath);
-            }
-            catch(Exception ex)
-            {
-                AddText(ex.Message);
-                return;
-            }
-
-            AddText("Импортируем PTP файлы в оригинальные файлы");
-
-            try
-            {
-                TextHelper.PackPTPtoSource(outputPath, ptpPath, duplPath);
-            }
-            catch(Exception ex)
-            {
-                AddText(ex.Message);
-                return;
-            }
-
-            AddText("Готово!");
-        }
-
-        private void AddText(string text)
-        {
-            RunInDispatcher(() => OutputText += text + '\n');
-        }
-
-        private void CopyTree(string src, string dst)
-        {
-            DirectoryInfo dir = new DirectoryInfo(src);
-
-            if (!dir.Exists)
-            {
-                throw new DirectoryNotFoundException("Папки не существует: "+ src);
-            }
-
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
-            if (!Directory.Exists(dst))
-            {
-                Directory.CreateDirectory(dst);
-            }
-
-            // Get the files in the directory and copy them to the new location.
-            FileInfo[] files = dir.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                string temppath = Path.Combine(dst, file.Name);
-                file.CopyTo(temppath, true);
-            }
-
-            foreach (DirectoryInfo subdir in dirs)
-            {
-                string temppath = Path.Combine(dst, subdir.Name);
-                CopyTree(subdir.FullName, temppath);
-            }
+                Title = "Импортируем PTP файлы в оригинальные файлы...",
+                Action = progress =>
+                {
+                    ImportSteps.PackPTPtoSource(outputPath, ptpPath, duplPath, progress);
+                }
+            };
         }
     }
 }

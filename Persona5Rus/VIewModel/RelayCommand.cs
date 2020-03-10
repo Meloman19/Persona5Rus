@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace Persona5Rus.VIewModel
+namespace Persona5Rus.ViewModel
 {
     public class RelayCommand : ICommand
     {

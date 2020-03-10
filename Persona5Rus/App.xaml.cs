@@ -1,4 +1,4 @@
-﻿using Persona5Rus.VIewModel;
+﻿using Persona5Rus.ViewModel;
 using System.Windows;
 
 namespace Persona5Rus
