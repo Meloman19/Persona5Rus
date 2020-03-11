@@ -12,11 +12,20 @@ namespace Persona5Rus.ViewModel
     class MainWindowViewModel : BindableBase
     {
         private static readonly string BasePath = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
-        private static readonly string SourcePath = "Source";
-        private static readonly string TextPath = "Text";
-        private static readonly string PTPPath = "PTP";
-        private static readonly string OutputPath = "Output";
-        private static readonly string DuplicatesPath = "PTP_DUPLICATE.txt";
+
+        private static readonly string SourcePath = Path.Combine(BasePath, "Source");
+        private static readonly string SourcePTPPath = Path.Combine(SourcePath, "PTP");
+
+        private static readonly string TextPath = Path.Combine(BasePath, "Text");
+        private static readonly string DuplicatesFilePath = Path.Combine(TextPath, "PTP_DUPLICATE.txt");
+        private static readonly string TextPTPPath = Path.Combine(TextPath, "PTP");
+
+        private static readonly string PTPPath = Path.Combine(BasePath, "PTP");
+
+        private static readonly string OutputPath = Path.Combine(BasePath, "Output");
+
+        private static readonly string TempPTP = Path.Combine(OutputPath, "TEMP_PTP");
+        private static readonly string TempSource = Path.Combine(OutputPath, "TEMP_SOURCE");
 
         private bool _onWork;
         private bool _onProcess;
@@ -80,27 +89,30 @@ namespace Persona5Rus.ViewModel
 
         private IEnumerable<TaskProgress> GetTasks()
         {
-            var ptpSourcePath = Path.Combine(BasePath, SourcePath, PTPPath);
-            var ptpTextPath = Path.Combine(BasePath, TextPath, PTPPath);
-            var ptpPath = Path.Combine(BasePath, PTPPath);
-            var outputPath = Path.Combine(BasePath, OutputPath);
-            var duplPath = Path.Combine(BasePath, TextPath, DuplicatesPath);
+            yield return new TaskProgress()
+            {
+                Title = "Копируем PTP файлы в выходную папку...",
+                Action = progress =>
+                {
+                    ImportSteps.CopySourceFiles(PTPPath, TempPTP, progress);
+                }
+            };
 
             yield return new TaskProgress()
             {
                 Title = "Импортируем перевод в PTP файлы...",
                 Action = progress =>
                 {
-                    ImportSteps.ImportTextToPTP(ptpPath, ptpTextPath, progress);
+                    ImportSteps.ImportTextToPTP(TempPTP, TextPTPPath, progress);
                 }
             };
 
             yield return new TaskProgress()
             {
-                Title = "Копируем оригинальные файлы в выходную папку для дальнейшей обработки...",
+                Title = "Копируем оригинальные файлы в выходную папку...",
                 Action = progress =>
                 {
-                    ImportSteps.CopySourceFiles(ptpSourcePath, outputPath, progress);
+                    ImportSteps.CopySourceFiles(SourcePTPPath, TempSource, progress);
                 }
             };
 
@@ -109,7 +121,7 @@ namespace Persona5Rus.ViewModel
                 Title = "Импортируем PTP файлы в оригинальные файлы...",
                 Action = progress =>
                 {
-                    ImportSteps.PackPTPtoSource(outputPath, ptpPath, duplPath, progress);
+                    ImportSteps.PackPTPtoSource(TempSource, TempPTP, DuplicatesFilePath, progress);
                 }
             };
         }

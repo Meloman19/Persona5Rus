@@ -108,7 +108,12 @@ namespace Persona5Rus.Common
 
         public static void CopySourceFiles(string src, string dst, IProgress<double> progress)
         {
-            Directory.Delete(dst, true);
+            if (Directory.Exists(dst))
+            {
+                Directory.Delete(dst, true);
+            }
+            Thread.Sleep(1000);
+            Directory.CreateDirectory(dst);
             Thread.Sleep(1000);
             var totalFiles = Directory.GetFiles(src, "*", SearchOption.AllDirectories).Length;
             int processedFiles = 0;
@@ -209,7 +214,10 @@ namespace Persona5Rus.Common
                         else if (DUPLICATES.ContainsKey(relPath) && File.Exists(Path.Combine(ptpDir, DUPLICATES[relPath])))
                         {
                             PTP PTP = new PTP(File.ReadAllBytes(Path.Combine(ptpDir, DUPLICATES[relPath])));
-                            a.GameData = new BMD(PTP, Static.NewEncoding());
+                            a.GameData = new BMD(PTP, Static.NewEncoding())
+                            {
+                                IsLittleEndian = false
+                            };
                         }
                     }
 
