@@ -4,8 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Tools;
 using PersonaEditorLib;
+using PersonaEditorLib.FileContainer;
+using PersonaEditorLib.Other;
 using PersonaEditorLib.Text;
 
 namespace Persona5Rus.Common
@@ -84,12 +87,7 @@ namespace Persona5Rus.Common
                     string current = Path.GetFileName(ptpFiles[k]).ToLower();
                     if (import.ContainsKey(current))
                     {
-                        PTP PTP = null;
-                        try
-                        {
-                            PTP = new PTP(File.ReadAllBytes(ptpFiles[k]));
-                        }
-                        catch { continue; }
+                        var PTP = new PTP(File.ReadAllBytes(ptpFiles[k]));
 
                         PTP.ImportNames(NameDic, oldEncoding);
 
@@ -108,11 +106,6 @@ namespace Persona5Rus.Common
 
         public static void CopySourceFiles(string src, string dst, IProgress<double> progress)
         {
-            if (Directory.Exists(dst))
-            {
-                Directory.Delete(dst, true);
-            }
-            Thread.Sleep(1000);
             Directory.CreateDirectory(dst);
             Thread.Sleep(1000);
             var totalFiles = Directory.GetFiles(src, "*", SearchOption.AllDirectories).Length;

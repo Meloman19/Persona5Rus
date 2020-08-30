@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -15,10 +14,12 @@ namespace Persona5Rus.ViewModel
 
         private static readonly string SourcePath = Path.Combine(BasePath, "Source");
         private static readonly string SourcePTPPath = Path.Combine(SourcePath, "PTP");
+        private static readonly string SourceFTDPath = Path.Combine(SourcePath, "TABLE");
 
         private static readonly string TextPath = Path.Combine(BasePath, "Text");
         private static readonly string DuplicatesFilePath = Path.Combine(TextPath, "PTP_DUPLICATE.txt");
         private static readonly string TextPTPPath = Path.Combine(TextPath, "PTP");
+        private static readonly string TextTablePath = Path.Combine(TextPath, "TABLE");
 
         private static readonly string PTPPath = Path.Combine(BasePath, "PTP");
 
@@ -74,6 +75,13 @@ namespace Persona5Rus.ViewModel
                 Tasks.Add(task);
             }
 
+            if (Directory.Exists(OutputPath))
+            {
+                Directory.Delete(OutputPath, true);
+            }
+
+            await Task.Delay(1000);
+
             foreach (var task in Tasks)
             {
                 await task.RunAsync();
@@ -109,10 +117,19 @@ namespace Persona5Rus.ViewModel
 
             yield return new TaskProgress()
             {
-                Title = "Копируем оригинальные файлы в выходную папку...",
+                Title = "Копируем оригинальные файлы (PTP) в выходную папку...",
                 Action = progress =>
                 {
                     ImportSteps.CopySourceFiles(SourcePTPPath, TempSource, progress);
+                }
+            };
+
+            yield return new TaskProgress()
+            {
+                Title = "Копируем оригинальные файлы (FTD|TBL) в выходную папку...",
+                Action = progress =>
+                {
+                    ImportSteps.CopySourceFiles(SourceFTDPath, TempSource, progress);
                 }
             };
 
@@ -122,6 +139,15 @@ namespace Persona5Rus.ViewModel
                 Action = progress =>
                 {
                     ImportSteps.PackPTPtoSource(TempSource, TempPTP, DuplicatesFilePath, progress);
+                }
+            };
+
+            yield return new TaskProgress()
+            {
+                Title = "Импортируем перевод в TBL|FTD файлы...",
+                Action = progress =>
+                {
+                    ImportSteps_Tables.PackTBLtoSource(TempSource, TextTablePath, progress);
                 }
             };
         }

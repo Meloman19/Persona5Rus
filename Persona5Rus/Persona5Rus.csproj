@@ -67,7 +67,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\ImportSteps.cs" />
+    <Compile Include="Common\ImportSteps_Tables.cs" />
+    <Compile Include="Common\Logger.cs" />
     <Compile Include="Common\Static.cs" />
     <Compile Include="Converters\BooleanNegativeConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
