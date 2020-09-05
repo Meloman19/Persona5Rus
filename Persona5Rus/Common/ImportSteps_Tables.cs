@@ -30,7 +30,7 @@ namespace Persona5Rus.Common
             for (int i = 0; i < actions.Count; i++)
             {
                 actions[i](sourceDir, newTableDir);
-                progress.Report(i + 1 / actions.Count);
+                progress.Report((i + 1 / actions.Count) * 100);
             }
         }
 
@@ -988,15 +988,21 @@ namespace Persona5Rus.Common
         private static void PackFTD_PanelBin(string sourceDir, string newTableDir)
         {
             const string s1 = @"ps3\field\panel.bin";
+            const string s12 = @"data\field\panel\mission_list\mission_list.tbl";
             const string s2 = @"PANEL_BIN.tsv";
             var source_path = Path.Combine(sourceDir, s1);
+            var source_path2 = Path.Combine(sourceDir, s12);
+            var table_text_path = Path.Combine(newTableDir, s2);
 
             if (!File.Exists(source_path))
             {
                 throw new Exception($"Отсутствует файл: {s1}");
             }
 
-            var table_text_path = Path.Combine(newTableDir, s2);
+            if (!File.Exists(source_path2))
+            {
+                throw new Exception($"Отсутствует файл: {s12}");
+            }
 
             if (!File.Exists(table_text_path))
             {
@@ -1006,9 +1012,7 @@ namespace Persona5Rus.Common
             Encoding oldEncoding = Static.OldEncoding();
             Encoding newEncoding = Static.NewEncoding();
 
-            var bin = new BIN(File.ReadAllBytes(source_path));
-
-            var bin_ftd = bin.SubFiles[7];
+            var tbl = new BIN(File.ReadAllBytes(source_path2));
 
             string[] ftdNames = new string[]
             {
@@ -1063,7 +1067,7 @@ namespace Persona5Rus.Common
                 }
             }
 
-            foreach (var a in bin_ftd.GameData.SubFiles)
+            foreach (var a in tbl.SubFiles)
                 if (ftdNames.Contains(a.Name))
                     if (a.GameData is FTD ftd)
                     {
@@ -1076,6 +1080,12 @@ namespace Persona5Rus.Common
                             ftd.ImportText_MultiEntry_Reimport(oldEncoding, newEncoding);
                         }
                     }
+
+            File.WriteAllBytes(source_path2, tbl.GetData());
+
+            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin_ftd = bin.SubFiles[7];
+            bin_ftd.GameData = tbl;
 
             File.WriteAllBytes(source_path, bin.GetData());
         }
