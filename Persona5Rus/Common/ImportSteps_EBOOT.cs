@@ -51,8 +51,8 @@ namespace Persona5Rus.Common
                 PackPart(MS, newEncoding, ebootPTPDir, BMD3Name, BMD3Pos, BMD3MaxSize);
                 PackPart(MS, newEncoding, ebootPTPDir, BMD4Name, BMD4Pos, BMD4MaxSize);
 
-                PackString(MS, newEncoding, STARTPos, STARTSize, "Кн. START");
-                PackString(MS, newEncoding, SELECTPos, SELECTSize, "Кн. SELECT");
+                PackString(MS, newEncoding, STARTPos, STARTSize, "START");
+                PackString(MS, newEncoding, SELECTPos, SELECTSize, "SELECT");
             }
 
             File.WriteAllBytes(ebootPath, ebootData);

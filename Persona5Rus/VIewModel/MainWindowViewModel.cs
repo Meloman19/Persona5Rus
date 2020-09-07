@@ -15,6 +15,7 @@ namespace Persona5Rus.ViewModel
         private static readonly string SourcePath = Path.Combine(BasePath, "Source");
         private static readonly string SourcePTPPath = Path.Combine(SourcePath, "PTP");
         private static readonly string SourceFTDPath = Path.Combine(SourcePath, "TABLE");
+        private static readonly string SourceOtherPath = Path.Combine(SourcePath, "OTHER");
         private static readonly string SourceEBOOTPath = Path.Combine(SourcePath, "EBOOT.BIN");
 
         private static readonly string TextPath = Path.Combine(BasePath, "Text");
@@ -29,7 +30,10 @@ namespace Persona5Rus.ViewModel
         private static readonly string TempPath = Path.Combine(BasePath, "Temp");
         private static readonly string TempPTP = Path.Combine(TempPath, "TEMP_PTP");
         private static readonly string TempSource = Path.Combine(TempPath, "TEMP_SOURCE");
+        private static readonly string TempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
         private static readonly string TempEBOOT = Path.Combine(TempPath, "EBOOT.BIN");
+
+        private static readonly string CPKTool = Path.Combine(BasePath, "Tools", "cpkmakec.exe");
 
         private bool _onWork;
         private bool _onProcess;
@@ -100,10 +104,10 @@ namespace Persona5Rus.ViewModel
                 }
             }
 
-            //if (Directory.Exists(TempPath))
-            //{
-            //    Directory.Delete(TempPath, true);
-            //}
+            if (Directory.Exists(TempPath))
+            {
+                Directory.Delete(TempPath, true);
+            }
 
             _onWork = false;
         }
@@ -130,20 +134,11 @@ namespace Persona5Rus.ViewModel
 
             yield return new TaskProgress()
             {
-                Title = "Копируем оригинальные файлы (PTP) в выходную папку...",
+                Title = "Копируем оригинальные файлы во временную папку...",
                 Action = progress =>
                 {
-                    ImportSteps.CopySourceFiles(SourcePTPPath, TempSource, progress);
-                    //File.Copy(SourceEBOOTPath, TempEBOOT, true);
-                }
-            };
-
-            yield return new TaskProgress()
-            {
-                Title = "Копируем оригинальные файлы (TABLE) в выходную папку...",
-                Action = progress =>
-                {
-                    ImportSteps.CopySourceFiles(SourceFTDPath, TempSource, progress);
+                    ImportSteps.CopySourceFiles(TempSource, progress, SourcePTPPath, SourceFTDPath, SourceOtherPath);
+                    File.Copy(SourceEBOOTPath, TempEBOOT, true);
                 }
             };
 
@@ -152,7 +147,7 @@ namespace Persona5Rus.ViewModel
                 Title = "Импортируем PTP файлы в оригинальные файлы...",
                 Action = progress =>
                 {
-                    //ImportSteps_EBOOT.PackEBOOT(TempEBOOT, TempPTP);
+                    ImportSteps_EBOOT.PackEBOOT(TempEBOOT, TempPTP);
                     ImportSteps.PackPTPtoSource(TempSource, TempPTP, DuplicatesFilePath, progress);
                 }
             };
@@ -166,14 +161,18 @@ namespace Persona5Rus.ViewModel
                 }
             };
 
-            //yield return new TaskProgress()
-            //{
-            //    Title = "Собираем все файлы вместе...",
-            //    Action = progress =>
-            //    {
-            //        progress.Report(1);
-            //    }
-            //};
+            yield return new TaskProgress()
+            {
+                Title = "Собираем все файлы вместе...",
+                Action = progress =>
+                {
+                    ImportSteps.MoveFiles(TempComplete, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
+                    var mod = Path.Combine(OutputPath, "mod.cpk");
+                    ImportSteps.MakeCPK(CPKTool, TempComplete, mod);
+
+                    File.Copy(TempEBOOT, Path.Combine(OutputPath, "EBOOT.BIN"), true);
+                }
+            };
         }
     }
 }
