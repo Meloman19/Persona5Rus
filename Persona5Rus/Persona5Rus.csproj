@@ -67,15 +67,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Common\EbootImporter.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\ImportSteps.cs" />
-    <Compile Include="Common\ImportSteps_EBOOT.cs" />
     <Compile Include="Common\ImportSteps_Tables.cs" />
     <Compile Include="Common\Logger.cs" />
+    <Compile Include="Common\MSGSplitter.cs" />
     <Compile Include="Common\Static.cs" />
+    <Compile Include="Common\TextImporter.cs" />
     <Compile Include="Converters\BooleanNegativeConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityNegativeConverter.cs" />
+    <Compile Include="Rework.cs" />
     <Compile Include="ViewModel\BindableBase.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="ViewModel\RelayCommand.cs" />

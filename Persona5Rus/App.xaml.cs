@@ -7,6 +7,8 @@ namespace Persona5Rus
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            //Rework.DoNormal();
+
             MainWindow = new MainWindow()
             {
                 DataContext = new MainWindowViewModel()
