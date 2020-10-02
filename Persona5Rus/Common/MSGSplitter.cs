@@ -179,8 +179,24 @@ namespace Persona5Rus.Common
 
         public void ChangeBody(string str, Encoding newEncoding, Dictionary<char, int> charWidth)
         {
-            var lineCount = Body.Count(e => e.Data.SequenceEqual(DefaultNewLine)) + 1;
-            var splittedStr = str.SplitByLineCount(charWidth, lineCount);
+            string splittedStr;
+            if (str.StartsWith("{F1 25}") && str.IndexOf("{0A}") != -1)
+            {
+                // Случай, если имя вынесено в текст
+
+                var endIndex = str.IndexOf("{0A}");
+
+                var name = str.Substring(0, endIndex + 4);
+                var str2 = str.Substring(endIndex + 4, str.Length - (endIndex + 4));
+
+                var lineCount = Body.Count(e => e.Data.SequenceEqual(DefaultNewLine));
+                splittedStr = name + str2.SplitByLineCount(charWidth, lineCount);
+            }
+            else
+            {
+                var lineCount = Body.Count(e => e.Data.SequenceEqual(DefaultNewLine)) + 1;
+                splittedStr = str.SplitByLineCount(charWidth, lineCount);
+            }
 
             Body = splittedStr.GetTextBases(newEncoding).ToList();
         }

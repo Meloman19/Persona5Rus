@@ -129,7 +129,8 @@ namespace Persona5Rus.Common
                         var split = new MSGSplitter(strData, strInd + 1 == msgData.MsgStrings.Length);
 
                         if (trans != null
-                            && trans.TryGetValue(new ValueTuple<int, int>(msgInd, strInd), out string newstr))
+                            && trans.TryGetValue(new ValueTuple<int, int>(msgInd, strInd), out string newstr)
+                            && !string.IsNullOrWhiteSpace(newstr))
                         {
                             split.ChangeBody(newstr, newEncoding, charWidth);
                         }
