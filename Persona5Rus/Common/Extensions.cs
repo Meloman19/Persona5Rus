@@ -208,14 +208,14 @@ namespace Persona5Rus.Common
                             {
                                 MS.Position = curPos;
 
-                                for (int i = 0; i < 20; i++)
+                                for (int i = 0; i < 0x20; i++)
                                 {
                                     MS.WriteByte(0);
                                 }
 
                                 MS.Position = curPos;
 
-                                var data = TrimLength(value, newEncoding, 19);
+                                var data = TrimLength(value, newEncoding, 0x20 - 1);
                                 for (int i = 0; i < data.Length; i++)
                                 {
                                     MS.WriteByte(data[i]);
