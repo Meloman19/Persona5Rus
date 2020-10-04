@@ -24,7 +24,15 @@ namespace Persona5Rus.ViewModel
 
         protected void RunInDispatcher(Action action)
         {
-            Application.Current.Dispatcher.Invoke(action);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher != null)
+            {
+                try
+                {
+                    dispatcher.Invoke(action);
+                }
+                catch { }
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

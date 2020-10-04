@@ -8,10 +8,7 @@ namespace Persona5Rus.ViewModel
         private bool? _success;
         private string _title;
         private double _progress;
-
-        public TaskProgress()
-        {
-        }
+        private string _error;
 
         public Action<IProgress<double>> Action { get; set; }
 
@@ -33,6 +30,12 @@ namespace Persona5Rus.ViewModel
             set { SetProperty(ref _progress, value); }
         }
 
+        public string Error
+        {
+            get => _error;
+            set => SetProperty(ref _error, value);
+        }
+
         public void Report(double value)
         {
             RunInDispatcher(() => Progress = value);
@@ -48,6 +51,7 @@ namespace Persona5Rus.ViewModel
             }
             catch (Exception ex)
             {
+                Error = ex.Message + Environment.NewLine + ex.StackTrace;
                 Success = false;
             }
         }
