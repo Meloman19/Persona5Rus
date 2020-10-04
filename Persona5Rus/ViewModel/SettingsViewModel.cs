@@ -29,5 +29,44 @@ namespace Persona5Rus.ViewModel
                 }
             }
         }
+
+        public bool DevSkipTextImport
+        {
+            get => Settings.DevSkipTextImport;
+            set
+            {
+                if (Settings.DevSkipTextImport != value)
+                {
+                    Settings.DevSkipTextImport = value;
+                    OnPropertChanged();
+                }
+            }
+        }
+
+        public bool DevSkipTableImport
+        {
+            get => Settings.DevSkipTableImport;
+            set
+            {
+                if (Settings.DevSkipTableImport != value)
+                {
+                    Settings.DevSkipTableImport = value;
+                    OnPropertChanged();
+                }
+            }
+        }
+
+        public bool DevSkipMovieImport
+        {
+            get => Settings.DevSkipMovieImport;
+            set
+            {
+                if (Settings.DevSkipMovieImport != value)
+                {
+                    Settings.DevSkipMovieImport = value;
+                    OnPropertChanged();
+                }
+            }
+        }
     }
 }

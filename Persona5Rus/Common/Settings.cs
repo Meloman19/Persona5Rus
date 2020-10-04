@@ -5,6 +5,8 @@ namespace Persona5Rus.Common
 {
     internal sealed class Settings
     {
+        private const string DevKey = "Dev";
+
         private readonly FileIniDataParser iniParser = new FileIniDataParser();
         private string configPath;
 
@@ -15,12 +17,22 @@ namespace Persona5Rus.Common
             {
                 var iniData = iniParser.ReadFile(configPath);
 
-                CreateModCPK = iniData.Global.TryGetBool(nameof(CreateModCPK), true);
+                CreateModCPK = iniData.TryGetBool(null, nameof(CreateModCPK), true);
+
+                DevSkipTextImport = iniData.TryGetBool(DevKey, nameof(DevSkipTextImport), false);
+                DevSkipTableImport = iniData.TryGetBool(DevKey, nameof(DevSkipTableImport), false);
+                DevSkipMovieImport = iniData.TryGetBool(DevKey, nameof(DevSkipMovieImport), false);
             }
             catch { }
         }
 
         public bool CreateModCPK { get; set; } = true;
+
+        public bool DevSkipTextImport { get; set; } = false;
+
+        public bool DevSkipTableImport { get; set; } = false;
+
+        public bool DevSkipMovieImport { get; set; } = false;
 
         public void Save()
         {
@@ -28,9 +40,14 @@ namespace Persona5Rus.Common
 
             iniData.Global[nameof(CreateModCPK)] = CreateModCPK.ToString();
 
+            iniData.Sections.AddSection(DevKey);
+            iniData.Sections[DevKey][nameof(DevSkipTextImport)] = DevSkipTextImport.ToString();
+            iniData.Sections[DevKey][nameof(DevSkipTableImport)] = DevSkipTableImport.ToString();
+            iniData.Sections[DevKey][nameof(DevSkipMovieImport)] = DevSkipMovieImport.ToString();
+
             try
             {
-                iniParser.WriteFile(configPath, iniData);
+                iniParser.WriteFile(configPath, iniData);                
             }
             catch { }
         }
@@ -40,6 +57,9 @@ namespace Persona5Rus.Common
             return new Settings()
             {
                 CreateModCPK = CreateModCPK,
+                DevSkipTextImport = DevSkipTextImport,
+                DevSkipTableImport = DevSkipTableImport,
+                DevSkipMovieImport = DevSkipMovieImport,
                 configPath = configPath
             };
         }
@@ -47,9 +67,24 @@ namespace Persona5Rus.Common
 
     internal static class IniExtensions
     {
-        public static bool TryGetBool(this KeyDataCollection keyDatas, string key, bool @default)
+        public static bool TryGetBool(this IniData data, string groupKey, string key, bool @default)
         {
-            var boolString = keyDatas[key];
+            KeyDataCollection group;
+            if (groupKey == null)
+            {
+                group = data.Global;
+            }
+            else
+            {
+                group = data.Sections[groupKey];
+            }
+
+            if (group == null)
+            {
+                return @default;
+            }
+
+            var boolString = group[key];
             if (boolString == null)
             {
                 return @default;

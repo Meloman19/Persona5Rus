@@ -12,10 +12,29 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer>
-            <Grid Margin="20">
-                <CheckBox Content="Собирать mod.cpk"
-                          IsChecked="{Binding CreateModCPK}"/>
-            </Grid>
+            <StackPanel>
+                <StackPanel Margin="20">
+                    <CheckBox Content="Собирать mod.cpk"
+                              IsChecked="{Binding CreateModCPK}"/>
+                    <TextBlock Text="Если данный параметр активирован, то в папке Output будет создан готовый mod.cpk. Иначе все файлы будут помещены в подпапку mod."
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <Separator/>
+                <GroupBox Header="Dev">
+                    <StackPanel>
+                        <CheckBox Content="Не импортировать текст"
+                                  IsChecked="{Binding DevSkipTextImport}"
+                                  Margin="5"/>
+                        <CheckBox Content="Не импортировать таблицы"
+                                  IsChecked="{Binding DevSkipTableImport}"
+                                  Margin="5"/>
+                        <CheckBox Content="Не импортировать субтитры"
+                                  IsChecked="{Binding DevSkipMovieImport}"
+                                  Margin="5"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>

@@ -31,7 +31,6 @@ namespace Persona5Rus.ViewModel
         private static readonly string TempPath = Path.Combine(BasePath, "Temp");
         private static readonly string TempSource = Path.Combine(TempPath, "TEMP_SOURCE");
         private static readonly string TempUSM = Path.Combine(TempPath, "TEMP_USM");
-        private static readonly string TempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
         private static readonly string TempEBOOT = Path.Combine(TempPath, "EBOOT.BIN");
 
         private static readonly string CPKTool = Path.Combine(BasePath, "Tools", "cpkmakec.exe");
@@ -120,6 +119,8 @@ namespace Persona5Rus.ViewModel
                     }
 
                     Thread.Sleep(1000);
+
+                    progress.Report(1);
                 }
             };
 
@@ -133,72 +134,91 @@ namespace Persona5Rus.ViewModel
                 }
             };
 
-            yield return new TaskProgress()
+            if (!settings.DevSkipTextImport)
             {
-                Title = "Импортируем перевод в оригинальные файлы...",
-                Action = progress =>
+                yield return new TaskProgress()
                 {
-                    TextImporter textImporter = new TextImporter(TextPTPPath, DuplicatesFilePath);
-                    EbootImporter ebootImporter = new EbootImporter(TextPTPPath);
-
-                    var sourceDir = TempSource;
-
-                    var files = Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories).ToArray();
-                    var ind = 0;
-
-                    foreach (var file in files)
+                    Title = "Импортируем перевод в оригинальные файлы...",
+                    Action = progress =>
                     {
-                        var progressValue = (double)ind++ / (double)files.Length * 100;
-                        progress.Report(progressValue);
+                        TextImporter textImporter = new TextImporter(TextPTPPath, DuplicatesFilePath);
+                        EbootImporter ebootImporter = new EbootImporter(TextPTPPath);
 
-                        textImporter.Import(file, sourceDir);
+                        var sourceDir = TempSource;
+
+                        var files = Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories).ToArray();
+                        var ind = 0;
+
+                        foreach (var file in files)
+                        {
+                            var progressValue = (double)ind++ / (double)files.Length * 100;
+                            progress.Report(progressValue);
+
+                            textImporter.Import(file, sourceDir);
+                        }
+
+                        ebootImporter.Import(TempEBOOT);
                     }
+                };
+            }
 
-                    ebootImporter.Import(TempEBOOT);
-                }
-            };
-
-            yield return new TaskProgress()
+            if (!settings.DevSkipTableImport)
             {
-                Title = "Импортируем перевод (таблицы) в оригинальные файлы...",
-                Action = progress =>
+                yield return new TaskProgress()
                 {
-                    ImportSteps_Tables.PackTBLtoSource(TempSource, TextTablePath, progress);
-                }
-            };
-
-            yield return new TaskProgress()
-            {
-                Title = "Импорт субтитров в видео...",
-                Action = progress =>
-                {
-                    UsmImporter usmImporter = new UsmImporter(TempUSM, USMEncoderTool, TextMovieFilePath);
-
-                    var files = Directory.EnumerateFiles(SourceUSMPath, "*", SearchOption.AllDirectories).ToArray();
-                    var ind = 0;
-
-                    var usmOutput = Path.Combine(TempSource, "ps3", "movie");
-
-                    foreach (var file in files)
+                    Title = "Импортируем перевод (таблицы) в оригинальные файлы...",
+                    Action = progress =>
                     {
-                        var progressValue = (double)ind++ / (double)files.Length * 100;
-                        progress.Report(progressValue);
-
-                        usmImporter.Import(file, usmOutput);
+                        ImportSteps_Tables.PackTBLtoSource(TempSource, TextTablePath, progress);
                     }
-                }
-            };
+                };
+            }
+
+            if (!settings.DevSkipMovieImport)
+            {
+                yield return new TaskProgress()
+                {
+                    Title = "Импорт субтитров в видео...",
+                    Action = progress =>
+                    {
+                        UsmImporter usmImporter = new UsmImporter(TempUSM, USMEncoderTool, TextMovieFilePath);
+
+                        var files = Directory.EnumerateFiles(SourceUSMPath, "*", SearchOption.AllDirectories).ToArray();
+                        var ind = 0;
+
+                        var usmOutput = Path.Combine(TempSource, "ps3", "movie");
+
+                        foreach (var file in files)
+                        {
+                            var progressValue = (double)ind++ / (double)files.Length * 100;
+                            progress.Report(progressValue);
+
+                            usmImporter.Import(file, usmOutput);
+                        }
+                    }
+                };
+            }
 
             yield return new TaskProgress()
             {
                 Title = "Собираем все файлы вместе...",
                 Action = progress =>
                 {
-                    ImportSteps.MoveFiles(TempComplete, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
-                    var mod = Path.Combine(OutputPath, "mod.cpk");
-                    ImportSteps.MakeCPK(CPKTool, TempComplete, mod);
-
+                    Directory.CreateDirectory(OutputPath);
                     File.Copy(TempEBOOT, Path.Combine(OutputPath, "EBOOT.BIN"), true);
+
+                    if (settings.CreateModCPK)
+                    {
+                        var tempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
+                        ImportSteps.MoveFiles(tempComplete, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
+                        var mod = Path.Combine(OutputPath, "mod.cpk");
+                        ImportSteps.MakeCPK(CPKTool, tempComplete, mod);
+                    }
+                    else
+                    {
+                        var completePath = Path.Combine(OutputPath, "mod");
+                        ImportSteps.MoveFiles(completePath, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
+                    }
 
                     if (Directory.Exists(TempPath))
                     {
