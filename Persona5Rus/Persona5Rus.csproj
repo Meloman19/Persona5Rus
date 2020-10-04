@@ -75,6 +75,7 @@
     <Compile Include="Common\MSGSplitter.cs" />
     <Compile Include="Common\Static.cs" />
     <Compile Include="Common\TextImporter.cs" />
+    <Compile Include="Common\UsmImporter.cs" />
     <Compile Include="Converters\BooleanNegativeConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityNegativeConverter.cs" />
@@ -121,6 +122,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="VGAudio">
+      <Version>2.2.1</Version>
+    </PackageReference>
+    <PackageReference Include="VGMToolbox">
+      <Version>1.0.0.1040</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

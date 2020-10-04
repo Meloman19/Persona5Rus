@@ -15,12 +15,14 @@ namespace Persona5Rus.ViewModel
 
         private static readonly string SourcePath = Path.Combine(BasePath, "Source");
         private static readonly string SourceBMDPath = Path.Combine(SourcePath, "PTP");
+        private static readonly string SourceUSMPath = Path.Combine(SourcePath, "USM");
         private static readonly string SourceTablePath = Path.Combine(SourcePath, "TABLE");
         private static readonly string SourceOtherPath = Path.Combine(SourcePath, "OTHER");
         private static readonly string SourceEBOOTPath = Path.Combine(SourcePath, "EBOOT.BIN");
 
         private static readonly string TextPath = Path.Combine(BasePath, "Text");
         private static readonly string DuplicatesFilePath = Path.Combine(TextPath, "PTP_DUPLICATE.txt");
+        private static readonly string TextMovieFilePath = Path.Combine(TextPath, "subtitles.tsv");
         private static readonly string TextPTPPath = Path.Combine(TextPath, "PTP");
         private static readonly string TextTablePath = Path.Combine(TextPath, "TABLE");
 
@@ -28,10 +30,12 @@ namespace Persona5Rus.ViewModel
 
         private static readonly string TempPath = Path.Combine(BasePath, "Temp");
         private static readonly string TempSource = Path.Combine(TempPath, "TEMP_SOURCE");
+        private static readonly string TempUSM = Path.Combine(TempPath, "TEMP_USM");
         private static readonly string TempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
         private static readonly string TempEBOOT = Path.Combine(TempPath, "EBOOT.BIN");
 
         private static readonly string CPKTool = Path.Combine(BasePath, "Tools", "cpkmakec.exe");
+        private static readonly string USMEncoderTool = Path.Combine(BasePath, "Tools", "medianoche.exe");
 
         private bool _onWork;
         private bool _onProcess;
@@ -153,6 +157,28 @@ namespace Persona5Rus.ViewModel
                 Action = progress =>
                 {
                     ImportSteps_Tables.PackTBLtoSource(TempSource, TextTablePath, progress);
+                }
+            };
+
+            yield return new TaskProgress()
+            {
+                Title = "Импорт субтитров в видео...",
+                Action = progress =>
+                {
+                    UsmImporter usmImporter = new UsmImporter(TempUSM, USMEncoderTool, TextMovieFilePath);
+
+                    var files = Directory.EnumerateFiles(SourceUSMPath, "*", SearchOption.AllDirectories).ToArray();
+                    var ind = 0;
+
+                    var usmOutput = Path.Combine(TempSource, "ps3", "movie");
+
+                    foreach (var file in files)
+                    {
+                        var progressValue = (double)ind++ / (double)files.Length * 100;
+                        progress.Report(progressValue);
+
+                        usmImporter.Import(file, usmOutput);
+                    }
                 }
             };
 
