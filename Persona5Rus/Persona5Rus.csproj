@@ -96,6 +96,7 @@
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SettingsPageTemplateSelector.cs" />
     <Page Include="ErrorWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -150,6 +151,9 @@
   <ItemGroup>
     <PackageReference Include="ini-parser-netstandard">
       <Version>2.5.2</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.WindowsAPICodePack-Shell">
+      <Version>1.1.0</Version>
     </PackageReference>
     <PackageReference Include="VGAudio">
       <Version>2.2.1</Version>

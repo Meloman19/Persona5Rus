@@ -19,12 +19,19 @@ namespace Persona5Rus.Common
 
                 CreateModCPK = iniData.TryGetBool(null, nameof(CreateModCPK), true);
 
+                DataCPKPath = iniData.Global[nameof(DataCPKPath)] ?? string.Empty;
+                PsCPKPath = iniData.Global[nameof(PsCPKPath)] ?? string.Empty;
+
                 DevSkipTextImport = iniData.TryGetBool(DevKey, nameof(DevSkipTextImport), false);
                 DevSkipTableImport = iniData.TryGetBool(DevKey, nameof(DevSkipTableImport), false);
                 DevSkipMovieImport = iniData.TryGetBool(DevKey, nameof(DevSkipMovieImport), false);
             }
             catch { }
         }
+
+        public string DataCPKPath { get; set; } = string.Empty;
+
+        public string PsCPKPath { get; set; } = string.Empty;
 
         public bool CreateModCPK { get; set; } = true;
 
@@ -39,6 +46,8 @@ namespace Persona5Rus.Common
             var iniData = new IniData();
 
             iniData.Global[nameof(CreateModCPK)] = CreateModCPK.ToString();
+            iniData.Global[nameof(DataCPKPath)] = DataCPKPath ?? string.Empty;
+            iniData.Global[nameof(PsCPKPath)] = PsCPKPath ?? string.Empty;
 
             iniData.Sections.AddSection(DevKey);
             iniData.Sections[DevKey][nameof(DevSkipTextImport)] = DevSkipTextImport.ToString();
@@ -56,6 +65,8 @@ namespace Persona5Rus.Common
         {
             return new Settings()
             {
+                DataCPKPath = DataCPKPath,
+                PsCPKPath = PsCPKPath,
                 CreateModCPK = CreateModCPK,
                 DevSkipTextImport = DevSkipTextImport,
                 DevSkipTableImport = DevSkipTableImport,

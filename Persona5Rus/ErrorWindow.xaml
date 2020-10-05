@@ -8,6 +8,7 @@
         Title="Ошибка" Height="300" Width="500">
     <Grid>
         <TextBox IsReadOnly="True"
+                 TextWrapping="Wrap"
                  Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:ErrorWindow}}, Path=ErrorText, Mode=OneWay}"/>
     </Grid>
 </Window>

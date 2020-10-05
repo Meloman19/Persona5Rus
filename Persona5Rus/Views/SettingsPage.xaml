@@ -3,8 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:Persona5Rus.Views"
+             xmlns:vm="clr-namespace:Persona5Rus.ViewModel"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <DataTemplate x:Key="SelectFolderTemplate"
+                      DataType="{x:Type vm:SelectFolderItem}">
+            <StackPanel Margin="0, 5">
+                <TextBlock Text="{Binding Header}" />
+                <DockPanel>
+                    <Button Content="Выбрать папку"
+                            DockPanel.Dock="Right"
+                            Padding="5, 5"
+                            Command="{Binding SelectFolderCommand}" />
+                    <TextBox Margin="0, 0, 5, 0"
+                             VerticalContentAlignment="Center"
+                             AcceptsReturn="False"
+                             Text="{Binding Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <local:SettingsPageTemplateSelector x:Key="TemplateSelector"
+                                            SelectFolderTemplate="{StaticResource SelectFolderTemplate}"/>
+    </UserControl.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -12,16 +37,20 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer>
-            <StackPanel>
-                <StackPanel Margin="20">
+            <StackPanel Margin="20">
+                <ItemsControl ItemsSource="{Binding SettingsItems}"
+                              ItemTemplateSelector="{StaticResource TemplateSelector}"
+                              Visibility="Collapsed"/>
+                
+                <StackPanel Margin="0, 10, 0, 0">
                     <CheckBox Content="Собирать mod.cpk"
                               IsChecked="{Binding CreateModCPK}"/>
                     <TextBlock Text="Если данный параметр активирован, то в папке Output будет создан готовый mod.cpk. Иначе все файлы будут помещены в подпапку mod."
                                TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <Separator/>
-                <GroupBox Header="Dev">
+                <Expander Header="Dev"
+                          Margin="0, 10, 0, 0">
                     <StackPanel>
                         <CheckBox Content="Не импортировать текст"
                                   IsChecked="{Binding DevSkipTextImport}"
@@ -33,7 +62,7 @@
                                   IsChecked="{Binding DevSkipMovieImport}"
                                   Margin="5"/>
                     </StackPanel>
-                </GroupBox>
+                </Expander>
             </StackPanel>
         </ScrollViewer>
     </Grid>
