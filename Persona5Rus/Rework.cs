@@ -84,7 +84,7 @@ namespace Persona5Rus
                                     var msgS = msgs.MsgStrings[msgStrInd];
 
                                     var splitResult = new MSGSplitter(msgS, msgStrInd + 1 == len);
-                                    var text = splitResult.Body.GetString(Static.P5EngEncoding(), true).Replace("\n", " ");
+                                    var text = splitResult.Body.GetString(Global.P5EngEncoding(), true).Replace("\n", " ");
 
                                     if (dicByName.TryGetValue(msgInd, out Dictionary<int, int> dicByMsg)
                                         && dicByMsg.TryGetValue(msgStrInd, out int sourceLineInd))

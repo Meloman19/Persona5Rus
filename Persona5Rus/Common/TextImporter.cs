@@ -15,9 +15,9 @@ namespace Persona5Rus.Common
         private Dictionary<string, string> DUPLICATES = new Dictionary<string, string>();
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
 
-        private Encoding oldEncoding = Static.OldEncoding();
-        private Encoding newEncoding = Static.NewEncoding();
-        private Dictionary<char, int> charWidth = Static.NewFont().GetCharWidth(Static.NewEncoding());
+        private Encoding oldEncoding = Global.OldEncoding();
+        private Encoding newEncoding = Global.NewEncoding();
+        private Dictionary<char, int> charWidth = Global.NewFont().GetCharWidth(Global.NewEncoding());
 
         public TextImporter(string textPTPPath, string duplicatesFilePath)
         {

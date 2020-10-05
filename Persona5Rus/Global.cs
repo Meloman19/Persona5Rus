@@ -1,10 +1,17 @@
 ﻿using PersonaEditorLib;
+using System;
 using System.IO;
 
-namespace Persona5Rus.Common
+namespace Persona5Rus
 {
-    internal class Static
+    internal static class Global
     {
+        public static string BasePath { get; } = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+
+        public static string TempFolderPath { get; } = Path.Combine(BasePath, "Temp");
+
+        public static string OutputFolderPath { get; } = Path.Combine(BasePath, "Output");
+
         private static PersonaEncoding p5EngEncoding = null;
         private static PersonaEncoding p5JapEncoding = null;
         private static PersonaEncoding p5RusEncoding = null;

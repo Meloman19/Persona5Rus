@@ -1,40 +1,32 @@
 ﻿using Persona5Rus.Common;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Persona5Rus.ViewModel
 {
     internal sealed class CreationViewModel : BindableBase
     {
-        private static readonly string BasePath = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
-
-        private static readonly string SourcePath = Path.Combine(BasePath, "Source");
+        private static readonly string SourcePath = Path.Combine(Global.BasePath, "Source");
         private static readonly string SourceBMDPath = Path.Combine(SourcePath, "PTP");
         private static readonly string SourceUSMPath = Path.Combine(SourcePath, "USM");
         private static readonly string SourceTablePath = Path.Combine(SourcePath, "TABLE");
         private static readonly string SourceOtherPath = Path.Combine(SourcePath, "OTHER");
         private static readonly string SourceEBOOTPath = Path.Combine(SourcePath, "EBOOT.BIN");
 
-        private static readonly string TextPath = Path.Combine(BasePath, "Text");
+        private static readonly string TextPath = Path.Combine(Global.BasePath, "Text");
         private static readonly string DuplicatesFilePath = Path.Combine(TextPath, "PTP_DUPLICATE.txt");
         private static readonly string TextMovieFilePath = Path.Combine(TextPath, "subtitles.tsv");
         private static readonly string TextPTPPath = Path.Combine(TextPath, "PTP");
         private static readonly string TextTablePath = Path.Combine(TextPath, "TABLE");
 
-        private static readonly string OutputPath = Path.Combine(BasePath, "Output");
-
-        private static readonly string TempPath = Path.Combine(BasePath, "Temp");
+        private static readonly string TempPath = Path.Combine(Global.BasePath, "Temp");
         private static readonly string TempSource = Path.Combine(TempPath, "TEMP_SOURCE");
         private static readonly string TempUSM = Path.Combine(TempPath, "TEMP_USM");
         private static readonly string TempEBOOT = Path.Combine(TempPath, "EBOOT.BIN");
 
-        private static readonly string CPKTool = Path.Combine(BasePath, "Tools", "cpkmakec.exe");
-        private static readonly string USMEncoderTool = Path.Combine(BasePath, "Tools", "medianoche.exe");
+        private static readonly string CPKTool = Path.Combine(Global.BasePath, "Tools", "cpk", "cpkmakec.exe");
 
         private bool _onProcess;
 
@@ -108,9 +100,9 @@ namespace Persona5Rus.ViewModel
                 Title = "Предварительная подготовка...",
                 Action = progress =>
                 {
-                    if (Directory.Exists(OutputPath))
+                    if (Directory.Exists(Global.OutputFolderPath))
                     {
-                        Directory.Delete(OutputPath, true);
+                        Directory.Delete(Global.OutputFolderPath, true);
                     }
 
                     if (Directory.Exists(TempPath))
@@ -181,7 +173,7 @@ namespace Persona5Rus.ViewModel
                     Title = "Импорт субтитров в видео...",
                     Action = progress =>
                     {
-                        UsmImporter usmImporter = new UsmImporter(TempUSM, USMEncoderTool, TextMovieFilePath);
+                        UsmImporter usmImporter = new UsmImporter(TempUSM, TextMovieFilePath);
 
                         var files = Directory.EnumerateFiles(SourceUSMPath, "*", SearchOption.AllDirectories).ToArray();
                         var ind = 0;
@@ -204,19 +196,19 @@ namespace Persona5Rus.ViewModel
                 Title = "Собираем все файлы вместе...",
                 Action = progress =>
                 {
-                    Directory.CreateDirectory(OutputPath);
-                    File.Copy(TempEBOOT, Path.Combine(OutputPath, "EBOOT.BIN"), true);
+                    Directory.CreateDirectory(Global.OutputFolderPath);
+                    File.Copy(TempEBOOT, Path.Combine(Global.OutputFolderPath, "EBOOT.BIN"), true);
 
                     if (settings.CreateModCPK)
                     {
                         var tempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
                         ImportSteps.MoveFiles(tempComplete, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
-                        var mod = Path.Combine(OutputPath, "mod.cpk");
+                        var mod = Path.Combine(Global.OutputFolderPath, "mod.cpk");
                         ImportSteps.MakeCPK(CPKTool, tempComplete, mod);
                     }
                     else
                     {
-                        var completePath = Path.Combine(OutputPath, "mod");
+                        var completePath = Path.Combine(Global.OutputFolderPath, "mod");
                         ImportSteps.MoveFiles(completePath, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
                     }
 

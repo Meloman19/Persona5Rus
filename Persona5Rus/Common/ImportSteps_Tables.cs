@@ -53,7 +53,7 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(table_pac_path));
 
@@ -171,8 +171,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(source_path));
 
@@ -261,8 +261,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(source_path));
 
@@ -404,8 +404,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             string[] ftdNames = new string[]
             {
@@ -542,8 +542,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             string[] ftdNames = new string[]
             {
@@ -641,8 +641,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(source_path));
 
@@ -732,8 +732,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var source = new Dictionary<string, string[]>();
 
@@ -810,8 +810,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var source = new Dictionary<string, string[]>();
 
@@ -888,8 +888,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(source_path));
 
@@ -1009,8 +1009,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var tbl = new BIN(File.ReadAllBytes(source_path2));
 
@@ -1109,8 +1109,8 @@ namespace Persona5Rus.Common
                 throw new Exception($"Отсутствует файл: {s2}");
             }
 
-            Encoding oldEncoding = Static.OldEncoding();
-            Encoding newEncoding = Static.NewEncoding();
+            Encoding oldEncoding = Global.OldEncoding();
+            Encoding newEncoding = Global.NewEncoding();
 
             var bin = new BIN(File.ReadAllBytes(source_path));
 

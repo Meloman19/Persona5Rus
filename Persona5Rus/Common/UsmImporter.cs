@@ -10,17 +10,17 @@ using VGMToolbox.format;
 
 namespace Persona5Rus.Common
 {
-    class UsmImporter
+    internal sealed class UsmImporter
     {
+        private static readonly string USMEncoderTool = Path.Combine(Global.BasePath, "Tools", "usm", "medianoche.exe");
+
         private readonly string _temp;
-        private readonly string _usmEncoderTool;
 
         private readonly Dictionary<string, string[][]> import = new Dictionary<string, string[][]>();
 
-        public UsmImporter(string temp, string uSMEncoderTool, string translateFile)
+        public UsmImporter(string temp, string translateFile)
         {
             _temp = temp;
-            _usmEncoderTool = uSMEncoderTool;
 
             {
                 var list = new List<string[]>();
@@ -72,8 +72,8 @@ namespace Persona5Rus.Common
 
             if (import.TryGetValue(usmName, out string[][] translate))
             {
-                var oldEncoding = Static.OldEncoding();
-                var newEncoding = Static.NewEncoding();
+                var oldEncoding = Global.OldEncoding();
+                var newEncoding = Global.NewEncoding();
 
                 var outtrslt = new List<string>();
                 outtrslt.Add("1000");
@@ -88,6 +88,11 @@ namespace Persona5Rus.Common
             else
             {
                 return;
+            }
+
+            if (!File.Exists(USMEncoderTool))
+            {
+                throw new Exception("Не найден инструмент для кодирования usm.");
             }
 
             var tempUsmPath = Path.Combine(_temp, usmName);
@@ -227,7 +232,7 @@ namespace Persona5Rus.Common
             }
 
             var process = new Process();
-            process.StartInfo.FileName = _usmEncoderTool;
+            process.StartInfo.FileName = USMEncoderTool;
             process.StartInfo.Arguments = args;
             process.StartInfo.WorkingDirectory = dir;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
