@@ -122,7 +122,7 @@ namespace Persona5Rus.ViewModel
                 }
             };
 
-            if (!settings.DevSkipTextImport && !settings.DevSkipTextureImport)
+            if (!settings.DevSkipTextImport | !settings.DevSkipTextureImport)
             {
                 yield return new TaskProgress()
                 {

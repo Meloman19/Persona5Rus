@@ -2,8 +2,11 @@
 using AuxiliaryLibraries.WPF.Wrapper;
 using PersonaEditorLib;
 using PersonaEditorLib.Sprite;
+using PersonaEditorLib.SpriteContainer;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace Persona5Rus.Common
 {
@@ -12,6 +15,8 @@ namespace Persona5Rus.Common
         private string texturePath;
 
         private Dictionary<string, string> cpkPathToFullPathPNG = new Dictionary<string, string>();
+
+        private Dictionary<string, string> cpkPathToFullPathXML = new Dictionary<string, string>();
 
         public TextureImporter(string texturePath)
         {
@@ -22,29 +27,56 @@ namespace Persona5Rus.Common
                     var cpkPath = IOTools.RelativePath(file, texturePath);
                     cpkPathToFullPathPNG[cpkPath] = file;
                 }
+
+                foreach (var file in Directory.EnumerateFiles(texturePath, "*.xml", SearchOption.AllDirectories))
+                {
+                    var cpkPath = IOTools.RelativePath(file, texturePath);
+                    cpkPathToFullPathXML[cpkPath] = file;
+                }
             }
             this.texturePath = texturePath;
         }
 
         public bool Import(GameFile file, string cpkPath)
         {
-            if (file.GameData is DDS dds)
+            var updated = false;
+
+            var ddss = file.GetAllObjectFiles(FormatEnum.DDS).ToArray();
+            foreach (var ddsGF in ddss)
             {
-                var cpkDdsPath = Path.ChangeExtension(cpkPath, ".png");
+                var dds = ddsGF.GameData as DDS;                
+                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(ddsGF.Name, ".png"));
 
                 if (!cpkPathToFullPathPNG.TryGetValue(cpkDdsPath, out string pngPath))
                 {
-                    return false;
+                    continue;
                 }
 
                 var bitmapSource = AuxiliaryLibraries.WPF.Tools.ImageTools.OpenPNG(pngPath);
                 var bitmap = bitmapSource.GetBitmap();
                 dds.SetBitmap(bitmap);
 
-                return true;
+                updated |= true;
             }
 
-            return false;
+            var spds = file.GetAllObjectFiles(FormatEnum.SPD).ToArray();
+            foreach (var spdGF in spds)
+            {
+                var spd = spdGF.GameData as SPD;
+                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(spdGF.Name, ".xml"));
+
+                if (!cpkPathToFullPathXML.TryGetValue(cpkDdsPath, out string xmlPath))
+                {
+                    continue;
+                }
+
+                var xml = XDocument.Load(xmlPath);
+                spd.SetTable(xml);
+
+                updated |= true;
+            }
+
+            return updated;
         }
     }
 }
