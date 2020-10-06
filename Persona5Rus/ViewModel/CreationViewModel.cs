@@ -1,32 +1,34 @@
-﻿using Persona5Rus.Common;
+﻿using AuxiliaryLibraries.Tools;
+using Persona5Rus.Common;
+using PersonaEditorLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Persona5Rus.ViewModel
 {
     internal sealed class CreationViewModel : BindableBase
     {
-        private static readonly string SourcePath = Path.Combine(Global.BasePath, "Source");
-        private static readonly string SourceBMDPath = Path.Combine(SourcePath, "PTP");
-        private static readonly string SourceUSMPath = Path.Combine(SourcePath, "USM");
-        private static readonly string SourceTablePath = Path.Combine(SourcePath, "TABLE");
-        private static readonly string SourceOtherPath = Path.Combine(SourcePath, "OTHER");
-        private static readonly string SourceEBOOTPath = Path.Combine(SourcePath, "EBOOT.BIN");
+        private static readonly string SourceEBOOTPath = Path.Combine(Global.DataDirectory, "EBOOT.BIN");
+        private static readonly string SourceFontPath = Path.Combine(Global.DataDirectory, "font0.fnt");
+        private static readonly string SourceWorkFilesPath = Path.Combine(Global.DataDirectory, "work_files.txt");
 
-        private static readonly string TextPath = Path.Combine(Global.BasePath, "Text");
-        private static readonly string DuplicatesFilePath = Path.Combine(TextPath, "PTP_DUPLICATE.txt");
-        private static readonly string TextMovieFilePath = Path.Combine(TextPath, "subtitles.tsv");
-        private static readonly string TextPTPPath = Path.Combine(TextPath, "PTP");
-        private static readonly string TextTablePath = Path.Combine(TextPath, "TABLE");
+        private static readonly string BMDTextPath = Path.Combine(Global.DataDirectory, "BMD");
+        private static readonly string BMDDuplicatesPath = Path.Combine(Global.DataDirectory, "PTP_DUPLICATE.txt");
+        private static readonly string TableTextPath = Path.Combine(Global.DataDirectory, "TABLE");
+        private static readonly string MovieSubtitlesFilePath = Path.Combine(Global.DataDirectory, "subtitles.tsv");
 
-        private static readonly string TempPath = Path.Combine(Global.BasePath, "Temp");
-        private static readonly string TempSource = Path.Combine(TempPath, "TEMP_SOURCE");
-        private static readonly string TempUSM = Path.Combine(TempPath, "TEMP_USM");
-        private static readonly string TempEBOOT = Path.Combine(TempPath, "EBOOT.BIN");
+        private static readonly string TexturePath = Path.Combine(Global.DataDirectory, "TEX");
 
-        private static readonly string CPKTool = Path.Combine(Global.BasePath, "Tools", "cpk", "cpkmakec.exe");
+        private static readonly string TempMod = Path.Combine(Global.TempDirectory, "mod");
+        private static readonly string TempSource = Path.Combine(Global.TempDirectory, "TEMP_SOURCE");
+        private static readonly string TempUSM = Path.Combine(Global.TempDirectory, "TEMP_USM");
+        private static readonly string TempEBOOT = Path.Combine(Global.TempDirectory, "EBOOT.BIN");
+
+        private static readonly string CPKTool = Path.Combine(Global.ApplicationDirectory, "Tools", "cpk", "cpkmakec.exe");
 
         private bool _onProcess;
 
@@ -100,14 +102,14 @@ namespace Persona5Rus.ViewModel
                 Title = "Предварительная подготовка...",
                 Action = progress =>
                 {
-                    if (Directory.Exists(Global.OutputFolderPath))
+                    if (Directory.Exists(Global.OutputDirectory))
                     {
-                        Directory.Delete(Global.OutputFolderPath, true);
+                        Directory.Delete(Global.OutputDirectory, true);
                     }
 
-                    if (Directory.Exists(TempPath))
+                    if (Directory.Exists(Global.TempDirectory))
                     {
-                        Directory.Delete(TempPath, true);
+                        Directory.Delete(Global.TempDirectory, true);
                     }
 
                     Thread.Sleep(1000);
@@ -118,53 +120,60 @@ namespace Persona5Rus.ViewModel
 
             yield return new TaskProgress()
             {
-                Title = "Копируем оригинальные файлы во временную папку...",
+                Title = "Импортируем перевод...",
                 Action = progress =>
                 {
-                    ImportSteps.CopySourceFiles(TempSource, progress, SourceBMDPath, SourceTablePath, SourceOtherPath);
-                    File.Copy(SourceEBOOTPath, TempEBOOT, true);
-                }
-            };
+                    TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath);
+                    TableImporter tableImporter = new TableImporter(TableTextPath);
+                    EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
 
-            if (!settings.DevSkipTextImport)
-            {
-                yield return new TaskProgress()
-                {
-                    Title = "Импортируем перевод в оригинальные файлы...",
-                    Action = progress =>
+                    var sourceFiles = GetSourceFiles(settings);
+
+                    var completed = 0;
+
+                    Action<int> action = i =>
                     {
-                        TextImporter textImporter = new TextImporter(TextPTPPath, DuplicatesFilePath);
-                        EbootImporter ebootImporter = new EbootImporter(TextPTPPath);
+                        var filePath = sourceFiles[i].Item1;
+                        var fileGD = GameFormatHelper.OpenFile(Path.GetFileName(filePath), File.ReadAllBytes(filePath));
 
-                        var sourceDir = TempSource;
+                        var newPath = Path.Combine(TempMod, sourceFiles[i].Item2);
+                        bool updated = false;
 
-                        var files = Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories).ToArray();
-                        var ind = 0;
-
-                        foreach (var file in files)
+                        if (!settings.DevSkipTextImport)
                         {
-                            var progressValue = (double)ind++ / (double)files.Length * 100;
-                            progress.Report(progressValue);
-
-                            textImporter.Import(file, sourceDir);
+                            updated |= textImporter.Import(fileGD, sourceFiles[i].Item2);
                         }
 
+                        if (!settings.DevSkipTableImport)
+                        {
+                            updated |= tableImporter.Import(fileGD, sourceFiles[i].Item2);
+                        }
+
+                        if (updated)
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+                            File.WriteAllBytes(newPath, fileGD.GameData.GetData());
+                        }
+
+                        Interlocked.Increment(ref completed);
+
+                        var progressValue = (double)completed / sourceFiles.Length * 100;
+                        progress.Report(progressValue);
+                    };
+
+                    Parallel.For(0, sourceFiles.Length, action);
+
+                    var fontNewPath = Path.Combine(TempMod, "font", "font0.fnt");
+                    Directory.CreateDirectory(Path.GetDirectoryName(fontNewPath));
+                    File.Copy(SourceFontPath, fontNewPath, true);
+
+                    if (!settings.DevSkipTextImport)
+                    {
+                        File.Copy(SourceEBOOTPath, TempEBOOT, true);
                         ebootImporter.Import(TempEBOOT);
                     }
-                };
-            }
-
-            if (!settings.DevSkipTableImport)
-            {
-                yield return new TaskProgress()
-                {
-                    Title = "Импортируем перевод (таблицы) в оригинальные файлы...",
-                    Action = progress =>
-                    {
-                        ImportSteps_Tables.PackTBLtoSource(TempSource, TextTablePath, progress);
-                    }
-                };
-            }
+                }
+            };
 
             if (!settings.DevSkipMovieImport)
             {
@@ -173,12 +182,18 @@ namespace Persona5Rus.ViewModel
                     Title = "Импорт субтитров в видео...",
                     Action = progress =>
                     {
-                        UsmImporter usmImporter = new UsmImporter(TempUSM, TextMovieFilePath);
+                        var usmSourceDir = Path.Combine(settings.PsCPKPath, "movie");
+                        if (!Directory.Exists(usmSourceDir))
+                        {
+                            return;
+                        }
 
-                        var files = Directory.EnumerateFiles(SourceUSMPath, "*", SearchOption.AllDirectories).ToArray();
+                        UsmImporter usmImporter = new UsmImporter(TempUSM, MovieSubtitlesFilePath);
+
+                        var files = Directory.EnumerateFiles(usmSourceDir, "*.usm", SearchOption.AllDirectories).ToArray();
                         var ind = 0;
 
-                        var usmOutput = Path.Combine(TempSource, "ps3", "movie");
+                        var usmOutput = Path.Combine(TempMod, "movie");
 
                         foreach (var file in files)
                         {
@@ -196,28 +211,102 @@ namespace Persona5Rus.ViewModel
                 Title = "Собираем все файлы вместе...",
                 Action = progress =>
                 {
-                    Directory.CreateDirectory(Global.OutputFolderPath);
-                    File.Copy(TempEBOOT, Path.Combine(Global.OutputFolderPath, "EBOOT.BIN"), true);
-
-                    if (settings.CreateModCPK)
+                    Directory.CreateDirectory(Global.OutputDirectory);
+                    if (File.Exists(TempEBOOT))
                     {
-                        var tempComplete = Path.Combine(TempPath, "TEMP_COMBINE");
-                        ImportSteps.MoveFiles(tempComplete, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
-                        var mod = Path.Combine(Global.OutputFolderPath, "mod.cpk");
-                        ImportSteps.MakeCPK(CPKTool, tempComplete, mod);
-                    }
-                    else
-                    {
-                        var completePath = Path.Combine(Global.OutputFolderPath, "mod");
-                        ImportSteps.MoveFiles(completePath, progress, Path.Combine(TempSource, "data"), Path.Combine(TempSource, "ps3"));
+                        File.Copy(TempEBOOT, Path.Combine(Global.OutputDirectory, "EBOOT.BIN"), true);
                     }
 
-                    if (Directory.Exists(TempPath))
+                    if (Directory.Exists(TempMod))
                     {
-                        Directory.Delete(TempPath, true);
+                        if (settings.CreateModCPK)
+                        {
+                            var mod = Path.Combine(Global.OutputDirectory, "mod.cpk");
+                            ImportSteps.MakeCPK(CPKTool, TempMod, mod);
+                        }
+                        else
+                        {
+                            var completePath = Path.Combine(Global.OutputDirectory, "mod");
+                            Directory.Move(TempMod, completePath);
+                        }
+                    }
+
+                    if (Directory.Exists(Global.TempDirectory))
+                    {
+                        Directory.Delete(Global.TempDirectory, true);
                     }
                 }
             };
+
+            yield break;
+
+            yield return new TaskProgress()
+            {
+                Title = "Импортируем текстуры...",
+                Action = progress =>
+                {
+                    TextureImporter textureImporter = new TextureImporter(TexturePath);
+
+                    var sourceDir = TempSource;
+
+                    var files = Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories).ToArray();
+                    var ind = 0;
+
+                    foreach (var file in files)
+                    {
+                        var progressValue = (double)ind++ / (double)files.Length * 100;
+                        progress.Report(progressValue);
+
+                        var fileGD = PersonaEditorLib.GameFormatHelper.OpenFile(Path.GetFileName(file), File.ReadAllBytes(file));
+                        var cpkPath = IOTools.RelativePath(file, sourceDir);
+
+                        if (cpkPath.StartsWith("ps3"))
+                        {
+                            cpkPath = cpkPath.Substring(4, cpkPath.Length - 4);
+                        }
+
+                        bool updated = false;
+                        updated |= textureImporter.Import(fileGD, cpkPath);
+                        if (updated)
+                        {
+                            File.WriteAllBytes(file, fileGD.GameData.GetData());
+                        }
+                    }
+                }
+            };
+        }
+
+        private static (string, string)[] GetSourceFiles(Settings settings)
+        {
+            var workFiles = File.ReadAllLines(SourceWorkFilesPath).ToHashSet();
+
+            var fi = new HashSet<string>();
+            List<(string, string)> sourceFiles = new List<(string, string)>();
+
+            var cpkDir = settings.PsCPKPath;
+            foreach (var file in Directory.EnumerateFiles(cpkDir, "*", SearchOption.AllDirectories))
+            {
+                var relPath = IOTools.RelativePath(file, cpkDir);
+
+                if (workFiles.Contains(relPath))
+                {
+                    fi.Add(relPath);
+                    sourceFiles.Add(new ValueTuple<string, string>(file, relPath));
+                }
+            }
+
+            cpkDir = settings.DataCPKPath;
+            foreach (var file in Directory.EnumerateFiles(cpkDir, "*", SearchOption.AllDirectories))
+            {
+                var relPath = IOTools.RelativePath(file, cpkDir);
+
+                if (workFiles.Contains(relPath) && !fi.Contains(relPath))
+                {
+                    sourceFiles.Add(new ValueTuple<string, string>(file, relPath));
+                }
+            }
+
+            return sourceFiles.ToArray();
         }
     }
 }

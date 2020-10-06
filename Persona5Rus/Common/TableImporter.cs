@@ -1,4 +1,5 @@
-﻿using PersonaEditorLib.FileContainer;
+﻿using PersonaEditorLib;
+using PersonaEditorLib.FileContainer;
 using PersonaEditorLib.Other;
 using System;
 using System.Collections.Generic;
@@ -8,62 +9,60 @@ using System.Text;
 
 namespace Persona5Rus.Common
 {
-    internal static class ImportSteps_Tables
+    internal sealed class TableImporter
     {
-        public static void PackTBLtoSource(string sourceDir, string newTableDir, IProgress<double> progress)
-        {
-            var actions = new List<Action<string, string>>()
-            {
-                Pack_TablePac,
-                Pack_Roadmap,
-                PackFTD_CmmBin,
-                PackFTD_FacilityPak,
-                PackFTD_ttrTableBin,
-                PackFTD_goodGaugePac,
-                PackFTD_fldPanelMsg,
-                PackFTD_fldPanelMsgDng,
-                PackFTD_fldResident,
-                PackFTD_CampPak,
-                PackFTD_PanelBin
-            };
+        private readonly string tableText;
+        private readonly Dictionary<string, Action<GameFile>> actions;
 
-            for (int i = 0; i < actions.Count; i++)
+        private Encoding oldEncoding = Global.OldEncoding();
+        private Encoding newEncoding = Global.NewEncoding();
+
+        public TableImporter(string tableText)
+        {
+            this.tableText = tableText;
+            actions = new Dictionary<string, Action<GameFile>>()
             {
-                actions[i](sourceDir, newTableDir);
-                progress.Report((i + 1 / actions.Count) * 100);
-            }
+                { @"battle\table.pac", Pack_TalbePac },
+                { @"calendar\goodGauge.pac", PackFTD_goodGaugePac },
+                { @"field\panel\mission_list\mission_list.tbl", PackFTD_MissionListTbl },
+                { @"field\panel\roadmap\roadmap.tbl", Pack_Roadmap },
+                { @"field\panel\fldPanelMsg.pac", PackFTD_fldPanelMsg },
+                { @"field\panel\fldPanelMsgDng.pac", PackFTD_fldPanelMsgDng },
+                { @"field\fldResident.pac", PackFTD_fldResident },
+                { @"field\panel.bin", PackFTD_PanelBin },
+                { @"init\camp.pak", PackFTD_CampPak },
+                { @"init\cmm.bin", Pack_CmmBin },
+                { @"init\facility.pak", Pack_FacilityPak },
+                { @"init\fclTable.bin", Pack_fclTableBin },
+                { @"init\ttrTable.bin", Pack_ttrTableBin },
+            };
         }
 
-        // data\battle\table.pac
-        private static void Pack_TablePac(string sourceDir, string newTableDir)
+        public bool Import(GameFile file, string cpkPath)
         {
-            const string s1 = @"data\battle\table.pac";
+            if (!actions.TryGetValue(cpkPath, out Action<GameFile> action))
+            {
+                return false;
+            }
+
+            action(file);
+            return true;
+        }
+
+        // battle\table.pac
+        private void Pack_TalbePac(GameFile file)
+        {
             const string s2 = @"NAME_TBL.tsv";
-            var table_pac_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(table_pac_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(table_pac_path));
+            var bin = file.GameData as BIN;
 
             string[][] source = null;
-
             {
                 var listS = new List<string[]>();
                 var list = new List<string>();
                 bool started = false;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     if (line.StartsWith("NAME.TBL"))
@@ -148,33 +147,14 @@ namespace Persona5Rus.Common
                     }
                 }
             }
-
-            File.WriteAllBytes(table_pac_path, bin.GetData());
         }
 
-        // data\field\panel\roadmap\roadmap.tbl
-        private static void Pack_Roadmap(string sourceDir, string newTableDir)
+        // field\panel\roadmap\roadmap.tbl
+        private void Pack_Roadmap(GameFile file)
         {
-            const string s1 = @"data\field\panel\roadmap\roadmap.tbl";
             const string s2 = @"ROADMAP_TBL.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             string[] ftdNames = new string[]
             {
@@ -186,6 +166,8 @@ namespace Persona5Rus.Common
             {
                 var list = new List<string>();
                 string currentName = null;
+
+                var table_text_path = Path.Combine(tableText, s2);
 
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
@@ -238,33 +220,14 @@ namespace Persona5Rus.Common
                             ftd.ImportText_MultiEntry_Reimport(oldEncoding, newEncoding);
                         }
                     }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // data\init\cmm.bin
-        private static void PackFTD_CmmBin(string sourceDir, string newTableDir)
+        // init\cmm.bin
+        private void Pack_CmmBin(GameFile file)
         {
-            const string s1 = @"data\init\cmm.bin";
             const string s2 = @"CMM_BIN.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             string[] ftdNames = new string[]
             {
@@ -292,11 +255,11 @@ namespace Persona5Rus.Common
             };
 
             var translate = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -374,38 +337,21 @@ namespace Persona5Rus.Common
                     }
                 }
             }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // data\init\facility.pak & data\init\facility.pak
-        private static void PackFTD_FacilityPak(string sourceDir, string newTableDir)
+        // init\facility.pak
+        private void Pack_FacilityPak(GameFile file)
         {
-            const string s1 = @"data\init\fclTable.bin";
-            const string s12 = @"data\init\facility.pak";
+            var bin = file.GameData as BIN;
+
+            var fcl = bin.SubFiles.Find(gd => gd.Name == "fclTable.bin");
+            Pack_fclTableBin(fcl);
+        }
+
+        // init\fclTable.bin
+        private void Pack_fclTableBin(GameFile file)
+        {
             const string s2 = @"FACILITY_PAK.tsv";
-
-            var source_path = Path.Combine(sourceDir, s1);
-            var source_path2 = Path.Combine(sourceDir, s12);
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            if (!File.Exists(source_path2))
-            {
-                throw new Exception($"Отсутствует файл: {s12}");
-            }
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
 
             string[] ftdNames = new string[]
             {
@@ -436,11 +382,11 @@ namespace Persona5Rus.Common
             };
 
             var translate = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -479,7 +425,7 @@ namespace Persona5Rus.Common
                 }
             }
 
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             foreach (var a in bin.SubFiles)
             {
@@ -512,38 +458,12 @@ namespace Persona5Rus.Common
                     }
                 }
             }
-
-            File.WriteAllBytes(source_path, bin.GetData());
-
-            var bin2 = new BIN(File.ReadAllBytes(source_path2));
-
-            var fcl = bin2.SubFiles.Find(gd => gd.Name == "fclTable.bin");
-            fcl.GameData = bin;
-
-            File.WriteAllBytes(source_path2, bin2.GetData());
         }
 
-        // data\init\ttrTable.bin"
-        private static void PackFTD_ttrTableBin(string sourceDir, string newTableDir)
+        // init\ttrTable.bin"
+        private void Pack_ttrTableBin(GameFile file)
         {
-            const string s1 = @"data\init\ttrTable.bin";
             const string s2 = @"TTRTABLE_BIN.tsv";
-
-            var source_path = Path.Combine(sourceDir, s1);
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
 
             string[] ftdNames = new string[]
             {
@@ -556,11 +476,11 @@ namespace Persona5Rus.Common
             };
 
             var translate = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -599,7 +519,7 @@ namespace Persona5Rus.Common
                 }
             }
 
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             foreach (var a in bin.SubFiles)
             {
@@ -618,33 +538,14 @@ namespace Persona5Rus.Common
                     }
                 }
             }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\calendar\goodGauge.pac
-        private static void PackFTD_goodGaugePac(string sourceDir, string newTableDir)
+        // calendar\goodGauge.pac
+        private void PackFTD_goodGaugePac(GameFile file)
         {
-            const string s1 = @"ps3\calendar\goodGauge.pac";
             const string s2 = @"GOODGAUGE_PAC.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             string[] ftdNames = new string[]
             {
@@ -653,11 +554,11 @@ namespace Persona5Rus.Common
             };
 
             var source = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -709,38 +610,19 @@ namespace Persona5Rus.Common
                             ftd.ImportText_MultiEntry_Reimport(oldEncoding, newEncoding);
                         }
                     }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\field\panel\fldPanelMsg.pac
-        private static void PackFTD_fldPanelMsg(string sourceDir, string newTableDir)
+        // field\panel\fldPanelMsg.pac
+        private void PackFTD_fldPanelMsg(GameFile file)
         {
-            const string s1 = @"ps3\field\panel\fldPanelMsg.pac";
             const string s2 = @"FLDPANELMSG_PAC.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
-
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
 
             var source = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -779,7 +661,7 @@ namespace Persona5Rus.Common
                 }
             }
 
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             var ftd = bin.SubFiles.Find(gd => gd.Name == "fldWholeMapTable.ftd");
             var ftdData = ftd.GameData as FTD;
@@ -787,38 +669,19 @@ namespace Persona5Rus.Common
             source.TryGetValue("fldWholeMapTable.ftd", out string[] import);
 
             ftdData.ImportText_fldPanelMsg(import, newEncoding);
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\field\panel\fldPanelMsgDng.pac
-        private static void PackFTD_fldPanelMsgDng(string sourceDir, string newTableDir)
+        // field\panel\fldPanelMsgDng.pac
+        private void PackFTD_fldPanelMsgDng(GameFile file)
         {
-            const string s1 = @"ps3\field\panel\fldPanelMsgDng.pac";
             const string s2 = @"FLDPANELMSGDNG_PAC.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
-
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
 
             var source = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -857,7 +720,7 @@ namespace Persona5Rus.Common
                 }
             }
 
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             var ftd = bin.SubFiles.Find(gd => gd.Name == "fldWholeMapTableDng.ftd");
             var ftdData = ftd.GameData as FTD;
@@ -865,33 +728,14 @@ namespace Persona5Rus.Common
             source.TryGetValue("fldWholeMapTableDng.ftd", out string[] import);
 
             ftdData.ImportText_fldPanelMsg(import, newEncoding);
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\field\fldResident.pac
-        private static void PackFTD_fldResident(string sourceDir, string newTableDir)
+        // field\fldResident.pac
+        private void PackFTD_fldResident(GameFile file)
         {
-            const string s1 = @"ps3\field\fldResident.pac";
             const string s2 = @"FLDRESIDENT_PAC.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             string[] ftdNames = new string[]
             {
@@ -906,9 +750,9 @@ namespace Persona5Rus.Common
             };
 
             string[] ftdNames2 = new string[]
-             {
+            {
                 "ftd/fldSaveDataPlace.ftd"
-             };
+            };
 
             var source = new Dictionary<string, string[]>();
 
@@ -916,6 +760,7 @@ namespace Persona5Rus.Common
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -980,39 +825,22 @@ namespace Persona5Rus.Common
                         }
                     }
                 }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\field\panel.bin
-        private static void PackFTD_PanelBin(string sourceDir, string newTableDir)
+        // field\panel.bin
+        private void PackFTD_PanelBin(GameFile file)
         {
-            const string s1 = @"ps3\field\panel.bin";
-            const string s12 = @"data\field\panel\mission_list\mission_list.tbl";
+            var bin = file.GameData as BIN;
+            var bin_ftd = bin.SubFiles[7];
+            PackFTD_MissionListTbl(bin_ftd);
+        }
+
+        // field\panel\mission_list\mission_list.tbl
+        private void PackFTD_MissionListTbl(GameFile file)
+        {
             const string s2 = @"PANEL_BIN.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
-            var source_path2 = Path.Combine(sourceDir, s12);
-            var table_text_path = Path.Combine(newTableDir, s2);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            if (!File.Exists(source_path2))
-            {
-                throw new Exception($"Отсутствует файл: {s12}");
-            }
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var tbl = new BIN(File.ReadAllBytes(source_path2));
+            var tbl = file.GameData as BIN;
 
             string[] ftdNames = new string[]
             {
@@ -1024,11 +852,11 @@ namespace Persona5Rus.Common
             };
 
             var source = new Dictionary<string, string[]>();
-
             {
                 var list = new List<string>();
                 string currentName = null;
 
+                var table_text_path = Path.Combine(tableText, s2);
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
                     var split = line.Split('\t');
@@ -1080,39 +908,14 @@ namespace Persona5Rus.Common
                             ftd.ImportText_MultiEntry_Reimport(oldEncoding, newEncoding);
                         }
                     }
-
-            File.WriteAllBytes(source_path2, tbl.GetData());
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
-            var bin_ftd = bin.SubFiles[7];
-            bin_ftd.GameData = tbl;
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
 
-        // ps3\init\camp.pak
-        private static void PackFTD_CampPak(string sourceDir, string newTableDir)
+        // init\camp.pak
+        private void PackFTD_CampPak(GameFile file)
         {
-            const string s1 = @"ps3\init\camp.pak";
             const string s2 = @"CAMP_PAK.tsv";
-            var source_path = Path.Combine(sourceDir, s1);
 
-            if (!File.Exists(source_path))
-            {
-                throw new Exception($"Отсутствует файл: {s1}");
-            }
-
-            var table_text_path = Path.Combine(newTableDir, s2);
-
-            if (!File.Exists(table_text_path))
-            {
-                throw new Exception($"Отсутствует файл: {s2}");
-            }
-
-            Encoding oldEncoding = Global.OldEncoding();
-            Encoding newEncoding = Global.NewEncoding();
-
-            var bin = new BIN(File.ReadAllBytes(source_path));
+            var bin = file.GameData as BIN;
 
             var bin_ftd = bin.SubFiles[4].GameData as BIN;
 
@@ -1136,6 +939,8 @@ namespace Persona5Rus.Common
             {
                 var list = new List<string>();
                 string currentName = null;
+
+                var table_text_path = Path.Combine(tableText, s2);
 
                 foreach (var line in File.ReadAllLines(table_text_path))
                 {
@@ -1188,8 +993,6 @@ namespace Persona5Rus.Common
                             ftd.ImportText_1Entry_Reimport(oldEncoding, newEncoding);
                         }
                     }
-
-            File.WriteAllBytes(source_path, bin.GetData());
         }
     }
 }

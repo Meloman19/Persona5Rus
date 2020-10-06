@@ -70,10 +70,11 @@
     <Compile Include="Common\EbootImporter.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\ImportSteps.cs" />
-    <Compile Include="Common\ImportSteps_Tables.cs" />
     <Compile Include="Common\Logger.cs" />
     <Compile Include="Common\MSGSplitter.cs" />
     <Compile Include="Common\Settings.cs" />
+    <Compile Include="Common\TableImporter.cs" />
+    <Compile Include="Common\TextureImporter.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Common\TextImporter.cs" />
     <Compile Include="Common\UsmImporter.cs" />

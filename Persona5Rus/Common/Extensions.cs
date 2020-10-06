@@ -163,11 +163,11 @@ namespace Persona5Rus.Common
 
             var index = 0;
 
-            for(int entryIndex = 0; entryIndex < 5; entryIndex++)
+            for (int entryIndex = 0; entryIndex < 5; entryIndex++)
             {
                 IEnumerable<byte> entryEnum = Enumerable.Empty<byte>();
 
-                for(int i = 0; i< 5; i++)
+                for (int i = 0; i < 5; i++)
                 {
                     var str = import[index];
 

@@ -6,7 +6,9 @@
         xmlns:views="clr-namespace:Persona5Rus.Views"
         xmlns:local="clr-namespace:Persona5Rus"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow"
+        MinHeight="450" MinWidth="800"
+        Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />

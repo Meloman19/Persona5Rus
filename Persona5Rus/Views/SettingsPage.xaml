@@ -39,8 +39,7 @@
         <ScrollViewer>
             <StackPanel Margin="20">
                 <ItemsControl ItemsSource="{Binding SettingsItems}"
-                              ItemTemplateSelector="{StaticResource TemplateSelector}"
-                              Visibility="Collapsed"/>
+                              ItemTemplateSelector="{StaticResource TemplateSelector}" />
                 
                 <StackPanel Margin="0, 10, 0, 0">
                     <CheckBox Content="Собирать mod.cpk"

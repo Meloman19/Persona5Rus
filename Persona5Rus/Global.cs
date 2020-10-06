@@ -1,16 +1,16 @@
 ﻿using PersonaEditorLib;
-using System;
 using System.IO;
 
 namespace Persona5Rus
 {
     internal static class Global
     {
-        public static string BasePath { get; } = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+        public static string ApplicationDirectory { get; } = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
-        public static string TempFolderPath { get; } = Path.Combine(BasePath, "Temp");
-
-        public static string OutputFolderPath { get; } = Path.Combine(BasePath, "Output");
+        public static string TempDirectory { get; } = Path.Combine(ApplicationDirectory, "Temp");
+        public static string OutputDirectory { get; } = Path.Combine(ApplicationDirectory, "Output");
+        public static string DataDirectory = Path.Combine(ApplicationDirectory, "Data");
+        public static string FontDirectory { get; } = Path.Combine(ApplicationDirectory, "Font");
 
         private static PersonaEncoding p5EngEncoding = null;
         private static PersonaEncoding p5JapEncoding = null;
@@ -19,9 +19,6 @@ namespace Persona5Rus
         private static PersonaEncoding oldEncoding = null;
         private static PersonaEncoding newEncoding = null;
         private static PersonaFont newFont = null;
-
-        public static string ApplicationDirectory { get; } = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        public static string FontDirectory { get; } = Path.Combine(ApplicationDirectory, "font");
 
         public static string OldFontName { get; set; } = "P5_ENG";
         public static string NewFontName { get; set; } = "P5_RUS";

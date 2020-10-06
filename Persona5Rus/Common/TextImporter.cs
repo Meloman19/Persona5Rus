@@ -91,6 +91,91 @@ namespace Persona5Rus.Common
             }
         }
 
+        public bool Import(GameFile file, string cpkPath)
+        {
+            var bmds = file.GetAllObjectFiles(FormatEnum.BMD).ToArray();
+
+            if (bmds.Length == 0)
+            {
+                return false;
+            }
+
+            var cpkDirPath = Path.GetDirectoryName(cpkPath);
+
+            foreach (var bmd in bmds)
+            {
+                var bmdGM = bmd.GameData as BMD;
+
+                var fullNameData = Path.Combine("data", cpkDirPath, Path.GetFileNameWithoutExtension(bmd.Name.Replace('/', '+')) + ".ptp").ToLower();
+                var fullNamePs = Path.Combine("ps3", cpkDirPath, Path.GetFileNameWithoutExtension(bmd.Name.Replace('/', '+')) + ".ptp").ToLower();
+
+                Dictionary<(int, int), string> trans;
+                if (!import.TryGetValue(fullNamePs, out trans))
+                {
+                    if (DUPLICATES.TryGetValue(fullNamePs, out fullNamePs))
+                    {
+                        import.TryGetValue(fullNamePs, out trans);
+                    }
+                    else if (!import.TryGetValue(fullNameData, out trans))
+                    {
+                        if (DUPLICATES.TryGetValue(fullNameData, out fullNameData))
+                        {
+                            import.TryGetValue(fullNameData, out trans);
+                        }
+                    }
+                }
+
+                for (int msgInd = 0; msgInd < bmdGM.Msg.Count; msgInd++)
+                {
+                    var msgData = bmdGM.Msg[msgInd];
+
+                    for (int strInd = 0; strInd < msgData.MsgStrings.Length; strInd++)
+                    {
+                        var strData = msgData.MsgStrings[strInd];
+
+                        var split = new MSGSplitter(strData, strInd + 1 == msgData.MsgStrings.Length);
+
+                        if (trans != null
+                            && trans.TryGetValue(new ValueTuple<int, int>(msgInd, strInd), out string newstr)
+                            && !string.IsNullOrWhiteSpace(newstr))
+                        {
+                            split.ChangeBody(newstr, newEncoding, charWidth);
+                        }
+                        else
+                        {
+                            split.ChangeEncoding(oldEncoding, newEncoding);
+                        }
+
+                        msgData.MsgStrings[strInd] = split.GetData();
+                    }
+                }
+
+                if (cpkDirPath == @"camp\chat")
+                {
+                    // Исключительный случай. Для отображения иконок персонажей в чатах (месседжере)
+                    // игра используется в качетсве ключа имя персонажа зашитое в файл BMD.
+                    // Искать, где находится аналогичная таблица для самих иконок мне лень, поэтому проще во всех чатах
+                    // не менять исходные данные в именах.
+                    // Всё равно имена в чатах не отображаются.
+                    continue;
+                }
+
+                foreach (var name in bmdGM.Name)
+                {
+                    var oldName = oldEncoding.GetString(name.NameBytes);
+                    string newName;
+                    if (!NameDic.TryGetValue(oldName, out newName))
+                    {
+                        newName = oldName;
+                    }
+
+                    name.NameBytes = newEncoding.GetBytes(newName);
+                }
+            }
+
+            return true;
+        }
+
         public void Import(string file, string sourceDir)
         {
             var fileData = PersonaEditorLib.GameFormatHelper.OpenFile(Path.GetFileName(file), File.ReadAllBytes(file));

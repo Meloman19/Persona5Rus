@@ -12,7 +12,7 @@ namespace Persona5Rus.Common
 {
     internal sealed class UsmImporter
     {
-        private static readonly string USMEncoderTool = Path.Combine(Global.BasePath, "Tools", "usm", "medianoche.exe");
+        private static readonly string USMEncoderTool = Path.Combine(Global.ApplicationDirectory, "Tools", "usm", "medianoche.exe");
 
         private readonly string _temp;
 
@@ -235,7 +235,7 @@ namespace Persona5Rus.Common
             process.StartInfo.FileName = USMEncoderTool;
             process.StartInfo.Arguments = args;
             process.StartInfo.WorkingDirectory = dir;
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            //process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             Thread.Sleep(100);
             process.Start();
             process.WaitForExit();
