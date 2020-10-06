@@ -15,6 +15,10 @@ namespace Persona5Rus.ViewModel
         private static readonly string SourceEBOOTPath = Path.Combine(Global.DataDirectory, "EBOOT.BIN");
         private static readonly string SourceFontPath = Path.Combine(Global.DataDirectory, "font0.fnt");
         private static readonly string SourceWorkFilesPath = Path.Combine(Global.DataDirectory, "work_files.txt");
+        private static readonly string SourceWorkFilesPath_BMD = Path.Combine(Global.DataDirectory, "BMD.txt");
+        private static readonly string SourceWorkFilesPath_TABLE = Path.Combine(Global.DataDirectory, "TABLE.txt");
+        private static readonly string SourceWorkFilesPath_TEXTURE = Path.Combine(Global.DataDirectory, "TEX.txt");
+        private static readonly string SourceWorkFilesPath_USM = Path.Combine(Global.DataDirectory, "USM.txt");
 
         private static readonly string BMDTextPath = Path.Combine(Global.DataDirectory, "BMD");
         private static readonly string BMDDuplicatesPath = Path.Combine(Global.DataDirectory, "PTP_DUPLICATE.txt");
@@ -118,62 +122,67 @@ namespace Persona5Rus.ViewModel
                 }
             };
 
-            yield return new TaskProgress()
+            if (!settings.DevSkipTextImport && !settings.DevSkipTextureImport)
             {
-                Title = "Импортируем перевод...",
-                Action = progress =>
+                yield return new TaskProgress()
                 {
-                    TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath);
-                    TableImporter tableImporter = new TableImporter(TableTextPath);
-                    EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
-
-                    var sourceFiles = GetSourceFiles(settings);
-
-                    var completed = 0;
-
-                    Action<int> action = i =>
+                    Title = "Импортируем перевод...",
+                    Action = progress =>
                     {
-                        var filePath = sourceFiles[i].Item1;
-                        var fileGD = GameFormatHelper.OpenFile(Path.GetFileName(filePath), File.ReadAllBytes(filePath));
+                        TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath);
+                        TableImporter tableImporter = new TableImporter(TableTextPath);
+                        EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
+                        TextureImporter textureImporter = new TextureImporter(TexturePath);
 
-                        var newPath = Path.Combine(TempMod, sourceFiles[i].Item2);
-                        bool updated = false;
+                        var sourceFiles = GetSourceFiles_TextTextures(settings);
+
+                        var completed = 0;
+
+                        Action<int> action = i =>
+                        {
+                            var filePath = sourceFiles[i].Item1;
+                            var fileGD = GameFormatHelper.OpenFile(Path.GetFileName(filePath), File.ReadAllBytes(filePath));
+
+                            var newPath = Path.Combine(TempMod, sourceFiles[i].Item2);
+                            bool updated = false;
+
+                            if (!settings.DevSkipTextImport)
+                            {
+                                updated |= textImporter.Import(fileGD, sourceFiles[i].Item2);
+                                updated |= tableImporter.Import(fileGD, sourceFiles[i].Item2);
+                            }
+
+                            if (!settings.DevSkipTextureImport)
+                            {
+                                updated |= textureImporter.Import(fileGD, sourceFiles[i].Item2);
+                            }
+
+                            if (updated)
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+                                File.WriteAllBytes(newPath, fileGD.GameData.GetData());
+                            }
+
+                            Interlocked.Increment(ref completed);
+
+                            var progressValue = (double)completed / sourceFiles.Length * 100;
+                            progress.Report(progressValue);
+                        };
+
+                        Parallel.For(0, sourceFiles.Length, action);
+
+                        var fontNewPath = Path.Combine(TempMod, "font", "font0.fnt");
+                        Directory.CreateDirectory(Path.GetDirectoryName(fontNewPath));
+                        File.Copy(SourceFontPath, fontNewPath, true);
 
                         if (!settings.DevSkipTextImport)
                         {
-                            updated |= textImporter.Import(fileGD, sourceFiles[i].Item2);
+                            File.Copy(SourceEBOOTPath, TempEBOOT, true);
+                            ebootImporter.Import(TempEBOOT);
                         }
-
-                        if (!settings.DevSkipTableImport)
-                        {
-                            updated |= tableImporter.Import(fileGD, sourceFiles[i].Item2);
-                        }
-
-                        if (updated)
-                        {
-                            Directory.CreateDirectory(Path.GetDirectoryName(newPath));
-                            File.WriteAllBytes(newPath, fileGD.GameData.GetData());
-                        }
-
-                        Interlocked.Increment(ref completed);
-
-                        var progressValue = (double)completed / sourceFiles.Length * 100;
-                        progress.Report(progressValue);
-                    };
-
-                    Parallel.For(0, sourceFiles.Length, action);
-
-                    var fontNewPath = Path.Combine(TempMod, "font", "font0.fnt");
-                    Directory.CreateDirectory(Path.GetDirectoryName(fontNewPath));
-                    File.Copy(SourceFontPath, fontNewPath, true);
-
-                    if (!settings.DevSkipTextImport)
-                    {
-                        File.Copy(SourceEBOOTPath, TempEBOOT, true);
-                        ebootImporter.Import(TempEBOOT);
                     }
-                }
-            };
+                };
+            }
 
             if (!settings.DevSkipMovieImport)
             {
@@ -182,25 +191,18 @@ namespace Persona5Rus.ViewModel
                     Title = "Импорт субтитров в видео...",
                     Action = progress =>
                     {
-                        var usmSourceDir = Path.Combine(settings.PsCPKPath, "movie");
-                        if (!Directory.Exists(usmSourceDir))
-                        {
-                            return;
-                        }
-
                         UsmImporter usmImporter = new UsmImporter(TempUSM, MovieSubtitlesFilePath);
 
-                        var files = Directory.EnumerateFiles(usmSourceDir, "*.usm", SearchOption.AllDirectories).ToArray();
-                        var ind = 0;
+                        var sourceFiles = GetSourceFiles_Movie(settings);
 
-                        var usmOutput = Path.Combine(TempMod, "movie");
-
-                        foreach (var file in files)
+                        for (int i = 0; i < sourceFiles.Length; i++)
                         {
-                            var progressValue = (double)ind++ / (double)files.Length * 100;
+                            var progressValue = (double)i / sourceFiles.Length * 100;
                             progress.Report(progressValue);
 
-                            usmImporter.Import(file, usmOutput);
+                            var outputPath = Path.Combine(TempMod, sourceFiles[i].Item2);
+
+                            usmImporter.Import(sourceFiles[i].Item1, outputPath);
                         }
                     }
                 };
@@ -237,49 +239,35 @@ namespace Persona5Rus.ViewModel
                     }
                 }
             };
-
-            yield break;
-
-            yield return new TaskProgress()
-            {
-                Title = "Импортируем текстуры...",
-                Action = progress =>
-                {
-                    TextureImporter textureImporter = new TextureImporter(TexturePath);
-
-                    var sourceDir = TempSource;
-
-                    var files = Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories).ToArray();
-                    var ind = 0;
-
-                    foreach (var file in files)
-                    {
-                        var progressValue = (double)ind++ / (double)files.Length * 100;
-                        progress.Report(progressValue);
-
-                        var fileGD = PersonaEditorLib.GameFormatHelper.OpenFile(Path.GetFileName(file), File.ReadAllBytes(file));
-                        var cpkPath = IOTools.RelativePath(file, sourceDir);
-
-                        if (cpkPath.StartsWith("ps3"))
-                        {
-                            cpkPath = cpkPath.Substring(4, cpkPath.Length - 4);
-                        }
-
-                        bool updated = false;
-                        updated |= textureImporter.Import(fileGD, cpkPath);
-                        if (updated)
-                        {
-                            File.WriteAllBytes(file, fileGD.GameData.GetData());
-                        }
-                    }
-                }
-            };
         }
 
-        private static (string, string)[] GetSourceFiles(Settings settings)
+        private static (string, string)[] GetSourceFiles_TextTextures(Settings settings)
         {
-            var workFiles = File.ReadAllLines(SourceWorkFilesPath).ToHashSet();
+            var workFiles = new HashSet<string>();
 
+            if (!settings.DevSkipTextImport)
+            {
+                workFiles.UnionWith(File.ReadAllLines(SourceWorkFilesPath_BMD));
+                workFiles.UnionWith(File.ReadAllLines(SourceWorkFilesPath_TABLE));
+            }
+
+            if (!settings.DevSkipTextureImport)
+            {
+                workFiles.UnionWith(File.ReadAllLines(SourceWorkFilesPath_TEXTURE));
+            }
+
+            return GetSourceFiles(settings, workFiles);
+        }
+
+        private static (string, string)[] GetSourceFiles_Movie(Settings settings)
+        {
+            var workFiles = File.ReadAllLines(SourceWorkFilesPath_USM).ToHashSet();
+
+            return GetSourceFiles(settings, workFiles);
+        }
+
+        private static (string, string)[] GetSourceFiles(Settings settings, HashSet<string> workFiles)
+        {
             var fi = new HashSet<string>();
             List<(string, string)> sourceFiles = new List<(string, string)>();
 

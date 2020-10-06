@@ -28,6 +28,11 @@ namespace Persona5Rus.ViewModel
 
         private void MakeGood(object obj)
         {
+            if (OnWork)
+            {
+                return;
+            }
+
             OnWork = true;
             SettingsVM.Settings.Save();
             CreationVM.MakeGood(SettingsVM.Settings);
@@ -35,7 +40,7 @@ namespace Persona5Rus.ViewModel
 
         public void Release()
         {
-            if (_onWork)
+            if (OnWork)
             {
                 return;
             }

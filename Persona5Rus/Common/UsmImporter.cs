@@ -137,13 +137,12 @@ namespace Persona5Rus.Common
 
             EncodeUsm(_temp);
 
-            var outputPath = Path.Combine(output, Path.GetFileName(tempUsmPath));
-            if (File.Exists(outputPath))
+            if (File.Exists(output))
             {
-                File.Delete(outputPath);
+                File.Delete(output);
             }
-            Directory.CreateDirectory(output);
-            File.Move(tempUsmPath, outputPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(output));
+            File.Move(tempUsmPath, output);
         }
 
         private void RunDemux(string usmPath)
@@ -235,8 +234,6 @@ namespace Persona5Rus.Common
             process.StartInfo.FileName = USMEncoderTool;
             process.StartInfo.Arguments = args;
             process.StartInfo.WorkingDirectory = dir;
-            //process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            Thread.Sleep(100);
             process.Start();
             process.WaitForExit();
         }

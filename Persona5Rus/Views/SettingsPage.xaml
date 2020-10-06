@@ -54,8 +54,8 @@
                         <CheckBox Content="Не импортировать текст"
                                   IsChecked="{Binding DevSkipTextImport}"
                                   Margin="5"/>
-                        <CheckBox Content="Не импортировать таблицы"
-                                  IsChecked="{Binding DevSkipTableImport}"
+                        <CheckBox Content="Не импортировать текстуры"
+                                  IsChecked="{Binding DevSkipTextureImport}"
                                   Margin="5"/>
                         <CheckBox Content="Не импортировать субтитры"
                                   IsChecked="{Binding DevSkipMovieImport}"

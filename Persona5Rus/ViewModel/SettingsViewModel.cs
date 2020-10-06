@@ -135,14 +135,14 @@ namespace Persona5Rus.ViewModel
             }
         }
 
-        public bool DevSkipTableImport
+        public bool DevSkipTextureImport
         {
-            get => Settings.DevSkipTableImport;
+            get => Settings.DevSkipTextureImport;
             set
             {
-                if (Settings.DevSkipTableImport != value)
+                if (Settings.DevSkipTextureImport != value)
                 {
-                    Settings.DevSkipTableImport = value;
+                    Settings.DevSkipTextureImport = value;
                     OnPropertChanged();
                 }
             }

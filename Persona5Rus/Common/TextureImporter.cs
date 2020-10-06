@@ -2,7 +2,6 @@
 using AuxiliaryLibraries.WPF.Wrapper;
 using PersonaEditorLib;
 using PersonaEditorLib.Sprite;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -33,7 +32,7 @@ namespace Persona5Rus.Common
             {
                 var cpkDdsPath = Path.ChangeExtension(cpkPath, ".png");
 
-                if(!cpkPathToFullPathPNG.TryGetValue(cpkDdsPath, out string pngPath))
+                if (!cpkPathToFullPathPNG.TryGetValue(cpkDdsPath, out string pngPath))
                 {
                     return false;
                 }

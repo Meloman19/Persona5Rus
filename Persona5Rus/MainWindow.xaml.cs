@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using Persona5Rus.ViewModel;
+using System.ComponentModel;
+using System.Windows;
 
 namespace Persona5Rus
 {
@@ -7,6 +9,13 @@ namespace Persona5Rus
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainWindowViewModel();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {            
+            (DataContext as MainWindowViewModel)?.Release();
+            base.OnClosing(e);
         }
     }
 }
