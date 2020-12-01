@@ -24,13 +24,13 @@ namespace Persona5Rus.Common
             {
                 foreach (var file in Directory.EnumerateFiles(texturePath, "*.png", SearchOption.AllDirectories))
                 {
-                    var cpkPath = IOTools.RelativePath(file, texturePath);
+                    var cpkPath = IOTools.RelativePath(file, texturePath).ToLower();
                     cpkPathToFullPathPNG[cpkPath] = file;
                 }
 
                 foreach (var file in Directory.EnumerateFiles(texturePath, "*.xml", SearchOption.AllDirectories))
                 {
-                    var cpkPath = IOTools.RelativePath(file, texturePath);
+                    var cpkPath = IOTools.RelativePath(file, texturePath).ToLower();
                     cpkPathToFullPathXML[cpkPath] = file;
                 }
             }
@@ -45,7 +45,7 @@ namespace Persona5Rus.Common
             foreach (var ddsGF in ddss)
             {
                 var dds = ddsGF.GameData as DDS;                
-                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(ddsGF.Name.Replace('/', '+'), ".png"));
+                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(ddsGF.Name.Replace('/', '+'), ".png")).ToLower();
 
                 if (!cpkPathToFullPathPNG.TryGetValue(cpkDdsPath, out string pngPath))
                 {
@@ -63,7 +63,7 @@ namespace Persona5Rus.Common
             foreach (var spdGF in spds)
             {
                 var spd = spdGF.GameData as SPD;
-                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(spdGF.Name.Replace('/', '+'), ".xml"));
+                var cpkDdsPath = Path.Combine(Path.GetDirectoryName(cpkPath), Path.ChangeExtension(spdGF.Name.Replace('/', '+'), ".xml")).ToLower();
 
                 if (!cpkPathToFullPathXML.TryGetValue(cpkDdsPath, out string xmlPath))
                 {
