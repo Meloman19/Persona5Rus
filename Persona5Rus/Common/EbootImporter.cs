@@ -25,11 +25,18 @@ namespace Persona5Rus.Common
         private const int BMD4Pos = 0xDFFB69;
         private const int BMD4MaxSize = 0x17292;
 
-        private const int STARTPos = 0xB713DC;
-        private const int STARTSize = 0xF;
-
-        private const int SELECTPos = 0xB713EC;
-        private const int SELECTSize = 0xF;
+        private static List<(int Pos, int Size, string Str)> StringData = new List<(int Pos, int Size, string Str)>()
+        {
+            (0xB713DC, 0x10, "START"),
+            (0xB713EC, 0x10, "SELECT"),
+            (0xB7B6F4, 0x8,  "Защита?"),
+            (0xB7B760, 0x10, "Полная свобода"),
+            (0xB7B770, 0x10, "Массивная атака"),
+            (0xB7B780, 0x10, "Сохранить ОД"),
+            (0xB7B790, 0x10, "Лечение/Помощь"),
+            (0xB7B7A0, 0x10, "Прямые команды"),
+            (0xB7B7E8, 0x10, "Вся команда")
+        };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
 
@@ -93,8 +100,10 @@ namespace Persona5Rus.Common
                 PackPart(MS, BMD3Name, BMD3Pos, BMD3MaxSize);
                 PackPart(MS, BMD4Name, BMD4Pos, BMD4MaxSize);
 
-                PackString(MS, STARTPos, STARTSize, "START");
-                PackString(MS, SELECTPos, SELECTSize, "SELECT");
+                foreach (var str in StringData)
+                {
+                    PackString(MS, str.Pos, str.Size, str.Str);
+                }
             }
 
             File.WriteAllBytes(ebootPath, ebootData);
@@ -160,7 +169,7 @@ namespace Persona5Rus.Common
         {
             var data = newEncoding.GetBytes(str);
 
-            if (data.Length > size)
+            if (data.Length >= size)
             {
                 throw new Exception(str);
             }
