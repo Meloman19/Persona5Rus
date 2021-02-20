@@ -230,6 +230,81 @@ namespace Persona5Rus.Common
             }
         }
 
+        public static void ImportText_fldLMapStation(this FTD ftd, string[] import, Encoding newEncoding)
+        {
+            void WriteStringTo(MemoryStream ms, string str, int pos, int size)
+            {
+                if (string.IsNullOrEmpty(str))
+                {
+                    str = " ";
+                }
+
+                ms.Position = pos;
+                for (int i = 0; i < size; i++)
+                {
+                    ms.WriteByte(0);
+                }
+                ms.Position = pos;
+                var data = TrimLength(str, newEncoding, size - 1);
+                for (int i = 0; i < data.Length; i++)
+                {
+                    ms.WriteByte(data[i]);
+                }
+            }
+
+            var nullBytes = new byte[] { 0x80, 0xAE, 0x80, 0xB5, 0x80, 0xAC, 0x80, 0xAC };
+
+            var index = 0;
+            foreach (var entry in ftd.Entries[0])
+            {
+                using (var MS = new MemoryStream(entry))
+                {
+                    var nullData = new byte[8];
+                    MS.Read(nullData, 0, 8);
+                    if (nullData.SequenceEqual(nullBytes))
+                    {
+                        index += 8;
+                        continue;
+                    }
+
+                    // title
+                    var value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0, 0x20);
+
+                    // about1
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0x30, 0x40);
+                    // about2
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0x70, 0x40);
+
+                    // add1
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0xB0, 0x20);
+                    // add2
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0xD0, 0x20);
+                    // add3
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0xF0, 0x20);
+                    // add4
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0x110, 0x20);
+                    // add5
+                    value = import[index];
+                    index++;
+                    WriteStringTo(MS, value, 0x130, 0x20);
+                }
+            }
+        }
+
         private static byte[] TrimLength(string value, Encoding encoding, int maxLength)
         {
             byte[] buffer;

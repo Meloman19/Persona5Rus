@@ -234,6 +234,9 @@ namespace Persona5Rus.Common
             process.StartInfo.FileName = USMEncoderTool;
             process.StartInfo.Arguments = args;
             process.StartInfo.WorkingDirectory = dir;
+
+            Thread.Sleep(5000); // На всякий случай ждём 5 секунд, чтобы завершились все файловые операции.
+
             process.Start();
             process.WaitForExit();
         }

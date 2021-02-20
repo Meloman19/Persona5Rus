@@ -26,6 +26,7 @@ namespace Persona5Rus.Common
                 { @"calendar\goodGauge.pac", PackFTD_goodGaugePac },
                 { @"field\panel\mission_list\mission_list.tbl", PackFTD_MissionListTbl },
                 { @"field\panel\roadmap\roadmap.tbl", Pack_Roadmap },
+                { @"field\panel\fldPanelLmap.pac", PackFTD_fldPanelLmap },
                 { @"field\panel\fldPanelMsg.pac", PackFTD_fldPanelMsg },
                 { @"field\panel\fldPanelMsgDng.pac", PackFTD_fldPanelMsgDng },
                 { @"field\fldResident.pac", PackFTD_fldResident },
@@ -610,6 +611,89 @@ namespace Persona5Rus.Common
                             ftd.ImportText_MultiEntry_Reimport(oldEncoding, newEncoding);
                         }
                     }
+        }
+
+        // field\panel\fldPanelLmap.pac
+        private void PackFTD_fldPanelLmap(GameFile file)
+        {
+            const string s2 = @"FLDPANELLMAP_PAC.tsv";
+
+            var source = new Dictionary<string, string[]>();
+            {
+                var list = new List<string>();
+                string currentName = null;
+
+                var table_text_path = Path.Combine(tableText, s2);
+                foreach (var line in File.ReadAllLines(table_text_path))
+                {
+                    var split = line.Split('\t');
+
+                    if (split[0].EndsWith(".ftd"))
+                    {
+                        if (currentName != null)
+                        {
+                            source.Add(currentName, list.ToArray());
+                            list.Clear();
+                        }
+
+                        currentName = split[0];
+                    }
+                    else
+                    {
+                        if (currentName == null)
+                        {
+                            continue;
+                        }
+
+                        if (string.IsNullOrEmpty(split[1]))
+                        {
+                            list.Add(split[0]);
+                        }
+                        else
+                        {
+                            list.Add(split[1]);
+                        }
+                    }
+                }
+
+                if (currentName != null)
+                {
+                    source.Add(currentName, list.ToArray());
+                }
+            }
+
+            const string ftd1Name = @"lmap/fldLMapStation.ftd";
+            const string ftd2Name = @"lmap/fldLMapLockedCorpName.ftd";
+
+            var bin = file.GameData as BIN;
+
+            if (source.TryGetValue(ftd1Name, out string[] import))
+            {
+                var ftdGD = bin.SubFiles.Find(gd => gd.Name == ftd1Name);
+                var ftd = ftdGD.GameData as FTD;
+
+                ftd.ImportText_fldLMapStation(import, newEncoding);
+            }
+
+            if (source.TryGetValue(ftd2Name, out string[] import2))
+            {
+                var ftdGD = bin.SubFiles.Find(gd => gd.Name == ftd2Name);
+                var ftd = ftdGD.GameData as FTD;
+
+                for (int i = 0; i < import2.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(import2[i]))
+                    {
+                        import2[i] = " ";
+                    }
+                }
+                if (import2.Length < ftd.Entries[0].Length)
+                {
+                    import2 = import2.Concat(Enumerable.Repeat(" ", ftd.Entries[0].Length - import2.Length)).ToArray();
+                }
+
+                ftd.ImportText_1Entry_LineByLine(import2, newEncoding);
+            }
         }
 
         // field\panel\fldPanelMsg.pac
