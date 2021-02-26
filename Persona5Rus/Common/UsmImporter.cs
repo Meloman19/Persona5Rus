@@ -234,7 +234,7 @@ namespace Persona5Rus.Common
 
             var m2vSize = (int)(new FileInfo(m2vPath).Length / (1024 * 1024));
 
-            var waitTime = m2vSize * 1000 * 2;
+            var waitTime = m2vSize * 1000 * 3;
 
             bool success = false;
 
