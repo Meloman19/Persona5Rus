@@ -230,15 +230,36 @@ namespace Persona5Rus.Common
                 args += $" -subtitle00={usmName}.txt";
             }
 
-            var process = new Process();
-            process.StartInfo.FileName = USMEncoderTool;
-            process.StartInfo.Arguments = args;
-            process.StartInfo.WorkingDirectory = dir;
+            var tries = 3;
 
-            Thread.Sleep(5000); // На всякий случай ждём 5 секунд, чтобы завершились все файловые операции.
+            var m2vSize = (int)(new FileInfo(m2vPath).Length / (1024 * 1024));
 
-            process.Start();
-            process.WaitForExit();
+            var waitTime = m2vSize * 1000 * 2;
+
+            bool success = false;
+
+            while (tries > 0)
+            {
+                var process = new Process();
+                process.StartInfo.FileName = USMEncoderTool;
+                process.StartInfo.Arguments = args;
+                process.StartInfo.WorkingDirectory = dir;
+
+                process.Start();
+                if (process.WaitForExit(waitTime))
+                {
+                    success = true;
+                    break;
+                }
+
+                process.Kill();
+                tries--;
+            }
+
+            if (!success)
+            {
+                throw new Exception("Долгое время ожидания");
+            }
         }
     }
 }
