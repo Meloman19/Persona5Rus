@@ -21,9 +21,11 @@ namespace Persona5Rus.Common
 
                 DataCPKPath = iniData.Global[nameof(DataCPKPath)] ?? string.Empty;
                 PsCPKPath = iniData.Global[nameof(PsCPKPath)] ?? string.Empty;
+                EBOOTPath = iniData.Global[nameof(EBOOTPath)] ?? string.Empty;
 
                 DevSkipTextImport = iniData.TryGetBool(DevKey, nameof(DevSkipTextImport), false);
                 DevSkipTextureImport = iniData.TryGetBool(DevKey, nameof(DevSkipTextureImport), false);
+                DevSkipEBOOTImport = iniData.TryGetBool(DevKey, nameof(DevSkipEBOOTImport), false);
                 DevSkipMovieImport = iniData.TryGetBool(DevKey, nameof(DevSkipMovieImport), false);
             }
             catch { }
@@ -33,11 +35,15 @@ namespace Persona5Rus.Common
 
         public string PsCPKPath { get; set; } = string.Empty;
 
+        public string EBOOTPath { get; set; } = string.Empty;
+
         public bool CreateModCPK { get; set; } = true;
 
         public bool DevSkipTextImport { get; set; } = false;
 
         public bool DevSkipTextureImport { get; set; } = false;
+
+        public bool DevSkipEBOOTImport { get; set; } = false;
 
         public bool DevSkipMovieImport { get; set; } = false;
 
@@ -48,10 +54,12 @@ namespace Persona5Rus.Common
             iniData.Global[nameof(CreateModCPK)] = CreateModCPK.ToString();
             iniData.Global[nameof(DataCPKPath)] = DataCPKPath ?? string.Empty;
             iniData.Global[nameof(PsCPKPath)] = PsCPKPath ?? string.Empty;
+            iniData.Global[nameof(EBOOTPath)] = EBOOTPath ?? string.Empty;
 
             iniData.Sections.AddSection(DevKey);
             iniData.Sections[DevKey][nameof(DevSkipTextImport)] = DevSkipTextImport.ToString();
             iniData.Sections[DevKey][nameof(DevSkipTextureImport)] = DevSkipTextureImport.ToString();
+            iniData.Sections[DevKey][nameof(DevSkipEBOOTImport)] = DevSkipEBOOTImport.ToString();
             iniData.Sections[DevKey][nameof(DevSkipMovieImport)] = DevSkipMovieImport.ToString();
 
             try
@@ -68,8 +76,10 @@ namespace Persona5Rus.Common
                 DataCPKPath = DataCPKPath,
                 PsCPKPath = PsCPKPath,
                 CreateModCPK = CreateModCPK,
+                EBOOTPath = EBOOTPath,
                 DevSkipTextImport = DevSkipTextImport,
                 DevSkipTextureImport = DevSkipTextureImport,
+                DevSkipEBOOTImport = DevSkipEBOOTImport,
                 DevSkipMovieImport = DevSkipMovieImport,
                 configPath = configPath
             };

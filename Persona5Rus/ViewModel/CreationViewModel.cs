@@ -12,7 +12,6 @@ namespace Persona5Rus.ViewModel
 {
     internal sealed class CreationViewModel : BindableBase
     {
-        private static readonly string SourceEBOOTPath = Path.Combine(Global.DataDirectory, "EBOOT.BIN");
         private static readonly string SourceFontPath = Path.Combine(Global.DataDirectory, "font0.fnt");
         private static readonly string SourceWorkFilesPath = Path.Combine(Global.DataDirectory, "work_files.txt");
         private static readonly string SourceWorkFilesPath_BMD = Path.Combine(Global.DataDirectory, "BMD.txt");
@@ -27,10 +26,9 @@ namespace Persona5Rus.ViewModel
 
         private static readonly string TexturePath = Path.Combine(Global.DataDirectory, "TEX");
 
-        private static readonly string TempMod = Path.Combine(Global.TempDirectory, "mod");
-        private static readonly string TempSource = Path.Combine(Global.TempDirectory, "TEMP_SOURCE");
+        private static readonly string TempMod = Path.Combine(Global.TempDirectory, "TEMP_MOD");
         private static readonly string TempUSM = Path.Combine(Global.TempDirectory, "TEMP_USM");
-        private static readonly string TempEBOOT = Path.Combine(Global.TempDirectory, "EBOOT.BIN");
+        private static readonly string TempEBOOT = Path.Combine(Global.TempDirectory, "TEMP_EBOOT");
 
         private static readonly string CPKTool = Path.Combine(Global.ApplicationDirectory, "Tools", "cpk", "cpkmakec.exe");
 
@@ -131,7 +129,6 @@ namespace Persona5Rus.ViewModel
                     {
                         TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath);
                         TableImporter tableImporter = new TableImporter(TableTextPath);
-                        EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
                         TextureImporter textureImporter = new TextureImporter(TexturePath);
 
                         var sourceFiles = GetSourceFiles_TextTextures(settings);
@@ -174,12 +171,24 @@ namespace Persona5Rus.ViewModel
                         var fontNewPath = Path.Combine(TempMod, "font", "font0.fnt");
                         Directory.CreateDirectory(Path.GetDirectoryName(fontNewPath));
                         File.Copy(SourceFontPath, fontNewPath, true);
+                    }
+                };
+            }
 
-                        if (!settings.DevSkipTextImport)
-                        {
-                            File.Copy(SourceEBOOTPath, TempEBOOT, true);
-                            ebootImporter.Import(TempEBOOT);
-                        }
+            if (!settings.DevSkipEBOOTImport)
+            {
+                yield return new TaskProgress()
+                {
+                    Title = "Патчим EBOOT.BIN",
+                    Action = progress =>
+                    {
+                        EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
+
+                        Directory.CreateDirectory(TempEBOOT);
+
+                        var binPath = Path.Combine(TempEBOOT, "EBOOT.BIN");
+                        File.Copy(settings.EBOOTPath, binPath, true);
+                        ebootImporter.ImportBIN(binPath);
                     }
                 };
             }
@@ -214,9 +223,11 @@ namespace Persona5Rus.ViewModel
                 Action = progress =>
                 {
                     Directory.CreateDirectory(Global.OutputDirectory);
-                    if (File.Exists(TempEBOOT))
+                    var binPath = Path.Combine(TempEBOOT, "EBOOT.BIN");
+                    if (File.Exists(binPath))
                     {
-                        File.Copy(TempEBOOT, Path.Combine(Global.OutputDirectory, "EBOOT.BIN"), true);
+                        var outputBin = Path.Combine(Global.OutputDirectory, "EBOOT.BIN");
+                        File.Move(binPath, outputBin);
                     }
 
                     if (Directory.Exists(TempMod))

@@ -67,6 +67,62 @@ namespace Persona5Rus.ViewModel
         public event Action<SelectFolderItem, string> PathChanged;
     }
 
+    internal sealed class SelectFileItem : SettingsItemBase
+    {
+        private string _path;
+        private string _header;
+
+        public SelectFileItem()
+        {
+            SelectFileCommand = new RelayCommand(SelectFile);
+        }
+
+        public string Header
+        {
+            get => _header;
+            set => SetProperty(ref _header, value);
+        }
+
+        public string Path
+        {
+            get => _path;
+            set
+            {
+                if (SetProperty(ref _path, value))
+                {
+                    PathChanged?.Invoke(this, _path);
+                }
+            }
+        }
+
+        public ICommand SelectFileCommand { get; }
+
+        private void SelectFile(object obj)
+        {
+            var dialog = new CommonOpenFileDialog();
+            dialog.IsFolderPicker = false;
+            dialog.Filters.Add(new CommonFileDialogFilter("EBOOT", "*.BIN"));
+
+            var initialDir = "";
+            try
+            {
+                initialDir = System.IO.Path.GetFullPath(Path);
+            }
+            catch { }
+
+            dialog.InitialDirectory = initialDir;
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                Path = dialog.FileName;
+            }
+
+            dialog.Dispose();
+        }
+
+        public event Action<SelectFileItem, string> PathChanged;
+    }
+
     internal sealed class SettingsViewModel : BindableBase
     {
         private static readonly string BasePath = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
@@ -103,6 +159,17 @@ namespace Persona5Rus.ViewModel
                 Settings.PsCPKPath = v;
             };
             SettingsItems.Add(selectPsCPK);
+
+            var selectEBOOT = new SelectFileItem()
+            {
+                Header = "Путь к оригинальному файлу EBOOT.BIN",
+                Path = Settings.EBOOTPath
+            };
+            selectEBOOT.PathChanged += (s, v) =>
+            {
+                Settings.EBOOTPath = v;
+            };
+            SettingsItems.Add(selectEBOOT);
         }
 
         public Settings Settings { get; }
@@ -143,6 +210,19 @@ namespace Persona5Rus.ViewModel
                 if (Settings.DevSkipTextureImport != value)
                 {
                     Settings.DevSkipTextureImport = value;
+                    OnPropertChanged();
+                }
+            }
+        }
+
+        public bool DevSkipEBOOTImport
+        {
+            get => Settings.DevSkipEBOOTImport;
+            set
+            {
+                if (Settings.DevSkipEBOOTImport != value)
+                {
+                    Settings.DevSkipEBOOTImport = value;
                     OnPropertChanged();
                 }
             }

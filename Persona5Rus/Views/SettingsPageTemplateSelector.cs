@@ -8,11 +8,16 @@ namespace Persona5Rus.Views
     {
         public DataTemplate SelectFolderTemplate { get; set; }
 
+        public DataTemplate SelectFileTemplate { get; set; }
+
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            if (item is SelectFolderItem)
+            switch (item)
             {
-                return SelectFolderTemplate;
+                case SelectFolderItem folderItem:
+                    return SelectFolderTemplate;
+                case SelectFileItem fileItem:
+                    return SelectFileTemplate;
             }
 
             return null;
