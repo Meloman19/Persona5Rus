@@ -190,15 +190,68 @@ namespace Persona5Rus.Common
                 var str2 = str.Substring(endIndex + 4, str.Length - (endIndex + 4));
 
                 var lineCount = Body.Count(e => e.Data.SequenceEqual(DefaultNewLine));
-                splittedStr = name + str2.SplitByLineCount(charWidth, lineCount);
+                splittedStr = name + SimpleFixString(str2.SplitByLineCount(charWidth, lineCount));
             }
             else
             {
                 var lineCount = Body.Count(e => e.Data.SequenceEqual(DefaultNewLine)) + 1;
-                splittedStr = str.SplitByLineCount(charWidth, lineCount);
+                splittedStr = SimpleFixString(str.SplitByLineCount(charWidth, lineCount));
             }
 
             Body = splittedStr.GetTextBases(newEncoding).ToList();
+        }
+
+        private static string SimpleFixString(string str)
+        {
+            bool changed = false;
+
+            var split = str.Split('\n');
+            for (int i = 1; i < split.Length;)
+            {
+                var s = split[i];
+                if (s.StartsWith(", "))
+                {
+                    split[i - 1] += ", ";
+                    split[i] = s.Substring(2);
+                    changed = true;
+                }
+                if (s.StartsWith(". "))
+                {
+                    split[i - 1] += ". ";
+                    split[i] = s.Substring(2);
+                    changed = true;
+                }
+                if (s.StartsWith("\" "))
+                {
+                    split[i - 1] += "\" ";
+                    split[i] = s.Substring(2);
+                    changed = true;
+                }
+                if (s.StartsWith("» "))
+                {
+                    split[i - 1] += "» ";
+                    split[i] = s.Substring(2);
+                    changed = true;
+                }
+                else if (s.StartsWith(" "))
+                {
+                    split[i] = s.Substring(1);
+                    changed = true;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            if (changed)
+            {
+                return String.Join("\n", split);
+            }
+            else
+            {
+                return str;
+            }
         }
 
         public void ChangeEncoding(Encoding oldEncoding, Encoding newEncoding)

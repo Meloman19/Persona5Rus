@@ -8,6 +8,41 @@ namespace Persona5Rus
 {
     class Rework
     {
+        public static void TempExtractText()
+        {
+            var path = @".bmd";
+
+            var output = new List<string>();
+
+            var bmd = new BMD(File.ReadAllBytes(path));
+            var name = Path.GetFileNameWithoutExtension(path);
+            for (int msgInd = 0; msgInd < bmd.Msg.Count; msgInd++)
+            {
+                var msgs = bmd.Msg[msgInd];
+
+                var len = msgs.MsgStrings.GetLength(0);
+                for (int msgStrInd = 0; msgStrInd < len; msgStrInd++)
+                {
+                    var msgS = msgs.MsgStrings[msgStrInd];
+
+                    var splitResult = new MSGSplitter(msgS, msgStrInd + 1 == len);
+                    var text = splitResult.Body.GetString(Global.P5EngEncoding(), true).Replace("\n", " ");
+
+                    string namestr = string.Empty;
+                    try
+                    {
+                        var namedata = bmd.Name[msgs.NameIndex];
+                         namestr = Global.P5EngEncoding().GetString(namedata.NameBytes);
+                    }
+                    catch { }
+
+                    output.Add($"{name + ".PTP"}\t{msgInd}\t{msgStrInd}\t{namestr}\t{text}");
+                }
+            }
+
+            File.WriteAllLines(Path.Combine(Path.GetDirectoryName(path), name + ".txt"), output);
+        }
+
         public static void DoNormal()
         {
             var source = @"d:\Visual Studio 2019\rework\source";

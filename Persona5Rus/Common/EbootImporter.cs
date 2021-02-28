@@ -86,13 +86,13 @@ namespace Persona5Rus.Common
             //(0xB40090, 0x08, "Пт"), // Fri
             //(0xB40098, 0x08, "Сб"), // Sat
             
-            //(0xB66B88, 0x08, "Вс"), // Sun
-            //(0xB66B90, 0x08, "Пн"), // Mon
-            //(0xB66B98, 0x08, "Вт"), // Tue
-            //(0xB66BA0, 0x08, "Ср"), // Wed
-            //(0xB66BA8, 0x08, "Чт"), // Thu
-            //(0xB66BB0, 0x08, "Пт"), // Fri
-            //(0xB66BB8, 0x08, "Сб"), // Sat
+            (0xB66B88, 0x08, "Вс"), // Sun
+            (0xB66B90, 0x08, "Пн"), // Mon
+            (0xB66B98, 0x08, "Вт"), // Tue
+            (0xB66BA0, 0x08, "Ср"), // Wed
+            (0xB66BA8, 0x08, "Чт"), // Thu
+            (0xB66BB0, 0x08, "Пт"), // Fri
+            (0xB66BB8, 0x08, "Сб"), // Sat
             
             //(0xB68C24, 0x08, "Вс"), // Sun
             //(0xB68C2C, 0x08, "Пн"), // Mon
@@ -102,7 +102,12 @@ namespace Persona5Rus.Common
             //(0xB68C4C, 0x08, "Пт"), // Fri
             //(0xB68C54, 0x08, "Сб"), // Sat
 
-
+            (0xD8F31C, 0x30, "Вещи & Инструменты"), // Items & Tools
+            (0xD8F41C, 0x30, "Карты навыков"), // Skill Cards
+            (0xD8F51C, 0x30, "Материалы"), // Materials
+            (0xD8F61C, 0x30, "Сокровища"), // Treasure
+            (0xD8F71C, 0x30, "Важное"), // Essentials
+            (0xD8F81C, 0x30, "Ключевые предметы"), // Key Items
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
@@ -243,13 +248,14 @@ namespace Persona5Rus.Common
             using (var MS = new MemoryStream(ebootData))
             {
                 PatchModCPK(MS);
+                PatchCalendar(MS);
 
                 foreach (var bmd in BMDData)
                 {
                     PackPart(MS, bmd.Name, bmd.Pos, bmd.MaxSize);
                 }
 
-                foreach(var str in UTF8StringData)
+                foreach (var str in UTF8StringData)
                 {
                     PackUTF8String(MS, str.Pos, str.Size, str.Str);
                 }
@@ -263,7 +269,7 @@ namespace Persona5Rus.Common
             File.WriteAllBytes(elfPath, ebootData);
         }
 
-        #region Patch mod.cpk
+        #region Patches
 
         private static List<(int, int)> Patch = new List<(int, int)>()
         {
@@ -309,6 +315,16 @@ namespace Persona5Rus.Common
                 var bytes = BitConverter.GetBytes(patch.Item2).Reverse().ToArray();
                 MS.Write(bytes, 0, 4);
             }
+        }
+
+        private const int CalendarPatchPos = 0xB66BD0;
+        private static readonly byte[] CalendarPatch = new byte[] { 0xEF, 0xBC, 0x80, 0x25, 0x73, 0xEF, 0xBC, 0x80 };
+
+        // Убираем скобки в календаре у дней недели
+        private void PatchCalendar(MemoryStream MS)
+        {
+            MS.Position = CalendarPatchPos;
+            MS.Write(CalendarPatch, 0, CalendarPatch.Length);
         }
 
         #endregion
