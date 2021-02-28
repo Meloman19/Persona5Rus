@@ -27,6 +27,12 @@ namespace Persona5Rus.Common
             (0xDFF1E9, 0x17292, "BMD4.PTP"),
         };
 
+        private static List<(int Pos, int Size, string Str)> UTF8StringData = new List<(int Pos, int Size, string Str)>()
+        {
+            (0xB70A5C, 0x10, "START"),
+            (0xB70A6C, 0x10, "SELECT"),
+        };
+
         private static List<(int Pos, int Size, string Str)> StringData = new List<(int Pos, int Size, string Str)>()
         {
             (0xB65AD4, 0x10, "Полная свобода"), // Act Freely
@@ -37,8 +43,6 @@ namespace Persona5Rus.Common
             (0xB65B24, 0x0C, "Замена всем"), // Change All
             (0xB65B30, 0x04, "Нет"), // None
 
-            (0xB70A5C, 0x10, "START"),
-            (0xB70A6C, 0x10, "SELECT"),
             (0xB7AD74, 0x08, "Защита?"),
             (0xB7ADE0, 0x10, "Полная свобода"), // Act Freely
             (0xB7ADF0, 0x10, "Массивная атака"), // Full Assault
@@ -245,6 +249,11 @@ namespace Persona5Rus.Common
                     PackPart(MS, bmd.Name, bmd.Pos, bmd.MaxSize);
                 }
 
+                foreach(var str in UTF8StringData)
+                {
+                    PackUTF8String(MS, str.Pos, str.Size, str.Str);
+                }
+
                 foreach (var str in StringData)
                 {
                     PackString(MS, str.Pos, str.Size, str.Str);
@@ -358,6 +367,26 @@ namespace Persona5Rus.Common
             }
             MS.Position = pos;
             MS.Write(bmdData, 0, bmdData.Length);
+        }
+
+        private void PackUTF8String(MemoryStream MS, int pos, int size, string str)
+        {
+            var data1 = newEncoding.GetBytes(str);
+            var str1 = oldEncoding.GetString(data1);
+            var data = Encoding.UTF8.GetBytes(str1);
+
+            if (data.Length >= size)
+            {
+                throw new Exception(str);
+            }
+
+            MS.Position = pos;
+            for (int i = 0; i < size; i++)
+            {
+                MS.WriteByte(0);
+            }
+            MS.Position = pos;
+            MS.Write(data, 0, data.Length);
         }
 
         private void PackString(MemoryStream MS, int pos, int size, string str)
