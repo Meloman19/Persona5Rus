@@ -180,7 +180,12 @@ namespace Persona5Rus.Common
         public void ChangeBody(string str, Encoding newEncoding, Dictionary<char, int> charWidth)
         {
             string splittedStr;
-            if (str.StartsWith("{F1 25}") && str.IndexOf("{0A}") != -1)
+            if (str.StartsWith("[RN]"))
+            {
+                // Спецкод. Если он есть в начале - отключаем нафиг автопереносы.
+                splittedStr = str.Substring(4);
+            }
+            else if (str.StartsWith("{F1 25}") && str.IndexOf("{0A}") != -1)
             {
                 // Случай, если имя вынесено в текст
 
@@ -206,39 +211,60 @@ namespace Persona5Rus.Common
             bool changed = false;
 
             var split = str.Split('\n');
-            for (int i = 1; i < split.Length;)
+
+            for (int i = 0; i < split.Length;)
             {
                 var s = split[i];
-                if (s.StartsWith(", "))
+
+                bool CheckEndsWith(string text)
                 {
-                    split[i - 1] += ", ";
-                    split[i] = s.Substring(2);
-                    changed = true;
+                    if (i < split.Length - 1)
+                    {
+                        return false;
+                    }
+
+                    if (split[i].EndsWith(text))
+                    {
+                        split[i + 1] = text + split[i + 1];
+                        split[i] = s.Substring(0, s.Length - 1);
+                        changed = true;
+                        return true;
+                    }
+
+                    return false;
                 }
-                if (s.StartsWith(". "))
+
+                bool CheckStartsWith(string text, bool add = true)
                 {
-                    split[i - 1] += ". ";
-                    split[i] = s.Substring(2);
-                    changed = true;
+                    if (i == 0)
+                    {
+                        return false;
+                    }
+
+                    if (split[i].StartsWith(text))
+                    {
+                        if (add)
+                        {
+                            split[i - 1] += text;
+                        }
+                        split[i] = s.Substring(text.Length);
+                        changed = true;
+                        return true;
+                    }
+
+                    return false;
                 }
-                if (s.StartsWith("\" "))
-                {
-                    split[i - 1] += "\" ";
-                    split[i] = s.Substring(2);
-                    changed = true;
-                }
-                if (s.StartsWith("» "))
-                {
-                    split[i - 1] += "» ";
-                    split[i] = s.Substring(2);
-                    changed = true;
-                }
-                else if (s.StartsWith(" "))
-                {
-                    split[i] = s.Substring(1);
-                    changed = true;
-                }
-                else
+
+                bool result = false;
+                result |= CheckStartsWith(", ");
+                result |= CheckStartsWith(". ");
+                result |= CheckStartsWith("\" ");
+                result |= CheckStartsWith("» ");
+                result |= CheckStartsWith("! ");
+                result |= CheckStartsWith(" ", false);
+                result |= CheckEndsWith("«");
+
+                if (!result)
                 {
                     i++;
                 }

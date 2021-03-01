@@ -108,6 +108,28 @@ namespace Persona5Rus.Common
             (0xD8F61C, 0x30, "Сокровища"), // Treasure
             (0xD8F71C, 0x30, "Важное"), // Essentials
             (0xD8F81C, 0x30, "Ключевые предметы"), // Key Items
+
+            (0xB3E850, 0x08, "Сл"), // St
+            (0xB3E858, 0x08, "Мг"), // Ma
+            (0xB3E860, 0x08, "Вн"), // En
+            (0xB3E868, 0x08, "Лв"), // Ag
+            (0xB3E870, 0x08, "Уд"), // Lu
+            (0xB3E878, 0x10, "Все статы"), // All stats
+            (0xB3E888, 0x08, "+"), // +
+
+            (0xB67000, 0x24, "Нет доступных руководств."), // There are no tutorials available.
+            (0xB67024, 0x10, "Вакансии"), // Job Listings
+            (0xB67034, 0x0C, "История"), // Story Title
+            //(0xB67040, 0x24, "Нет доступных руководств."), // There are no tutorials available.
+            
+            (0xD40314, 0x40, "Сокровища"), // Treasure
+            (0xD40413, 0x40, "Холодное оружие"), // Melee Weapons
+            (0xD40512, 0x40, "Оружие дального боя"), // Ranged Weapons
+            (0xD40611, 0x40, "Броня"), // Protectors
+            (0xD40710, 0x40, "Аксессуары"), // Accessories
+            (0xD4080F, 0x08, "Вещи"), // Items
+
+            (0xB7395C, 0x08, "Защита"), // Guard
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
