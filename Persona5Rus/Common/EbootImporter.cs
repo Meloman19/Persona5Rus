@@ -130,6 +130,8 @@ namespace Persona5Rus.Common
             (0xD4080F, 0x08, "Вещи"), // Items
 
             (0xB7395C, 0x08, "Защита"), // Guard
+            
+            (0xB65ED8, 0x14, "Кто же это?.."), // Who could it be...?
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();

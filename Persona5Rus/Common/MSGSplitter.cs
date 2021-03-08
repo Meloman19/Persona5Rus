@@ -260,6 +260,7 @@ namespace Persona5Rus.Common
                 result |= CheckStartsWith(". ");
                 result |= CheckStartsWith("\" ");
                 result |= CheckStartsWith("» ");
+                result |= CheckStartsWith("»! ");
                 result |= CheckStartsWith("! ");
                 result |= CheckStartsWith(" ", false);
                 result |= CheckEndsWith("«");
