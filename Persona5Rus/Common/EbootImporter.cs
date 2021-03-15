@@ -43,7 +43,8 @@ namespace Persona5Rus.Common
             (0xB65B24, 0x0C, "Замена всем"), // Change All
             (0xB65B30, 0x04, "Нет"), // None
 
-            (0xB7AD74, 0x08, "Защита?"),
+            (0xB7AD74, 0x08, "Защита?"), // Guard?
+            (0xB7AD8C, 0x10, "Поменять?"), // Switch out?
             (0xB7ADE0, 0x10, "Полная свобода"), // Act Freely
             (0xB7ADF0, 0x10, "Массивная атака"), // Full Assault
             (0xB7AE00, 0x10, "Сохранить ОД"), // Conserve SP
@@ -132,6 +133,7 @@ namespace Persona5Rus.Common
             (0xB7395C, 0x08, "Защита"), // Guard
             
             (0xB65ED8, 0x14, "Кто же это?.."), // Who could it be...?
+            (0xB65DEC, 0x14, "--Не используется--"), // --Unequippable--
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
