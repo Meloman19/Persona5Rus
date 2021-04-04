@@ -134,6 +134,29 @@ namespace Persona5Rus.Common
             
             (0xB65ED8, 0x14, "Кто же это?.."), // Who could it be...?
             (0xB65DEC, 0x14, "--Не используется--"), // --Unequippable--
+
+            (0xB435AA, 0x1E, "Рюдзи"), // Ryuji
+            (0xB435CA, 0x1E, "Моргана"), // Morgana
+            (0xB435EA, 0x1E, "Анн"), // Ann
+            (0xB4360A, 0x1E, "Юсукэ"), // Yusuke
+            (0xB4362A, 0x1E, "Макото"), // Makoto
+            (0xB4364A, 0x1E, "Хару"), // Haru
+            (0xB4366A, 0x1E, "Футаба"), // Futaba
+            (0xB4368A, 0x1E, "Акэти"), // Akechi
+            (0xB436AA, 0x1E, "Содзиро"), // Sojiro
+            (0xB436CA, 0x1E, "Тихая"), // Chihaya
+            (0xB436EA, 0x1E, "Жюстина"), // Justine
+            (0xB4370A, 0x1E, "Каролина"), // Caroline
+            (0xB4372A, 0x1E, "Ивай"), // Iwai
+            (0xB4374A, 0x1E, "Такэми"), // Takemi
+            (0xB4376A, 0x1E, "Каваками"), // Kawakami
+            (0xB4378A, 0x1E, "Оя"), // Ohya
+            (0xB437AA, 0x1E, "Синъя"), // Shinya
+            (0xB437CA, 0x1E, "Хифуми"), // Hifumi
+            (0xB437EA, 0x1E, "Мисима"), // Mishima
+            (0xB4380A, 0x1E, "Ёсида"), // Yoshida
+            (0xB4382A, 0x1E, "Саэ"), // Sae
+            (0xB4384A, 0x1E, "Игорь"), // Igor
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();

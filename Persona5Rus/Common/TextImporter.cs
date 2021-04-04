@@ -150,24 +150,6 @@ namespace Persona5Rus.Common
                     }
                 }
 
-                if (cpkDirPath == @"camp\chat")
-                {
-                    // Исключительный случай. Для отображения иконок персонажей в чатах (месседжере)
-                    // игра используется в качетсве ключа имя персонажа зашитое в файл BMD.
-                    // Искать, где находится аналогичная таблица для самих иконок мне лень, поэтому проще во всех чатах
-                    // не менять исходные данные в именах.
-                    // Всё равно имена в чатах не отображаются.
-
-                    // Исключение из исключения: Моргана. Его имя нужно отображаться с новым шрифтом,
-                    // потому что его текст отображается в обычном диалоговом окне.
-                    var name = bmdGM.Name.Find(n => oldEncoding.GetString(n.NameBytes) == "Morgana");
-                    if (name != null)
-                    {
-                        name.NameBytes = newEncoding.GetBytes("Моргана");
-                    }
-                    continue;
-                }
-
                 foreach (var name in bmdGM.Name)
                 {
                     var oldName = oldEncoding.GetString(name.NameBytes);
