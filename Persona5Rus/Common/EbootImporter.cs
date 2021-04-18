@@ -157,6 +157,12 @@ namespace Persona5Rus.Common
             (0xB4380A, 0x1E, "Ёсида"), // Yoshida
             (0xB4382A, 0x1E, "Саэ"), // Sae
             (0xB4384A, 0x1E, "Игорь"), // Igor
+
+            (0xB66A10, 0x10, "Удача"), // Luck Reading
+            (0xB66A28, 0x10, "Деньги"), // Money Reading
+            (0xB66A38, 0x0C, "Доп. за СА"), // AOA cash up
+
+            (0xB558D4, 0x0D, "Призраки"), // The Phantoms
         };
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
