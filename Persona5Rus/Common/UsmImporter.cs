@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats.CriAdx;
@@ -16,10 +17,14 @@ namespace Persona5Rus.Common
 
         private readonly string _temp;
 
+        private readonly Encoding oldEncoding;
+        private readonly Encoding newEncoding;
         private readonly Dictionary<string, string[][]> import = new Dictionary<string, string[][]>();
 
-        public UsmImporter(string temp, string translateFile)
+        public UsmImporter(string temp, string translateFile, Encoding oldEncoding, Encoding newEncoding)
         {
+            this.oldEncoding = oldEncoding ?? throw new ArgumentNullException(nameof(oldEncoding));
+            this.newEncoding = newEncoding ?? throw new ArgumentNullException(nameof(newEncoding));
             _temp = temp;
 
             {
@@ -72,9 +77,6 @@ namespace Persona5Rus.Common
 
             if (import.TryGetValue(usmName, out string[][] translate))
             {
-                var oldEncoding = Global.OldEncoding();
-                var newEncoding = Global.NewEncoding();
-
                 var outtrslt = new List<string>();
                 outtrslt.Add("1000");
                 foreach (var sub in translate)

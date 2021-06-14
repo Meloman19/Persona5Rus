@@ -26,13 +26,13 @@ namespace Persona5Rus
                     var msgS = msgs.MsgStrings[msgStrInd];
 
                     var splitResult = new MSGSplitter(msgS, msgStrInd + 1 == len);
-                    var text = splitResult.Body.GetString(Global.P5EngEncoding(), true).Replace("\n", " ");
+                    var text = splitResult.Body.GetString(Global.PS3_P5EngEncoding(), true).Replace("\n", " ");
 
                     string namestr = string.Empty;
                     try
                     {
                         var namedata = bmd.Name[msgs.NameIndex];
-                         namestr = Global.P5EngEncoding().GetString(namedata.NameBytes);
+                         namestr = Global.PS3_P5EngEncoding().GetString(namedata.NameBytes);
                     }
                     catch { }
 
@@ -131,7 +131,7 @@ namespace Persona5Rus
                                     var msgS = msgs.MsgStrings[msgStrInd];
 
                                     var splitResult = new MSGSplitter(msgS, msgStrInd + 1 == len);
-                                    var text = splitResult.Body.GetString(Global.P5EngEncoding(), true).Replace("\n", " ");
+                                    var text = splitResult.Body.GetString(Global.PS3_P5EngEncoding(), true).Replace("\n", " ");
 
                                     if (dicByName.TryGetValue(msgInd, out Dictionary<int, int> dicByMsg)
                                         && dicByMsg.TryGetValue(msgStrInd, out int sourceLineInd))
@@ -212,7 +212,7 @@ namespace Persona5Rus
                                     var msgS = msgs.MsgStrings[msgStrInd];
 
                                     var splitResult = new MSGSplitter(msgS, msgStrInd + 1 == len);
-                                    var text = splitResult.Body.GetString(Global.P5JapEncoding(), true).Replace("\n", " ");
+                                    var text = splitResult.Body.GetString(Global.PS3_P5JapEncoding(), true).Replace("\n", " ");
 
                                     if (dicByName.TryGetValue(msgInd, out Dictionary<int, int> dicByMsg)
                                         && dicByMsg.TryGetValue(msgStrInd, out int sourceLineInd))

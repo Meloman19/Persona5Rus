@@ -1,8 +1,15 @@
 ﻿using IniParser;
 using IniParser.Model;
+using System;
 
 namespace Persona5Rus.Common
 {
+    internal enum Game
+    {
+        Persona5PS3,
+        Persona5PS4
+    }
+
     internal sealed class Settings
     {
         private const string DevKey = "Dev";
@@ -19,6 +26,10 @@ namespace Persona5Rus.Common
 
                 CreateModCPK = iniData.TryGetBool(null, nameof(CreateModCPK), true);
 
+                if (Enum.TryParse<Game>(iniData.Global[nameof(GameType)], out Game result))
+                {
+                    GameType = result;
+                }
                 DataCPKPath = iniData.Global[nameof(DataCPKPath)] ?? string.Empty;
                 PsCPKPath = iniData.Global[nameof(PsCPKPath)] ?? string.Empty;
                 EBOOTPath = iniData.Global[nameof(EBOOTPath)] ?? string.Empty;
@@ -30,6 +41,8 @@ namespace Persona5Rus.Common
             }
             catch { }
         }
+
+        public Game GameType { get; set; } = Game.Persona5PS3;
 
         public string DataCPKPath { get; set; } = string.Empty;
 
@@ -52,6 +65,7 @@ namespace Persona5Rus.Common
             var iniData = new IniData();
 
             iniData.Global[nameof(CreateModCPK)] = CreateModCPK.ToString();
+            iniData.Global[nameof(GameType)] = GameType.ToString();
             iniData.Global[nameof(DataCPKPath)] = DataCPKPath ?? string.Empty;
             iniData.Global[nameof(PsCPKPath)] = PsCPKPath ?? string.Empty;
             iniData.Global[nameof(EBOOTPath)] = EBOOTPath ?? string.Empty;
@@ -73,6 +87,7 @@ namespace Persona5Rus.Common
         {
             return new Settings()
             {
+                GameType = GameType,
                 DataCPKPath = DataCPKPath,
                 PsCPKPath = PsCPKPath,
                 CreateModCPK = CreateModCPK,

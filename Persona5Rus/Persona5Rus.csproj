@@ -69,6 +69,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\EbootImporter.cs" />
+    <Compile Include="Common\EbootImporterPS4.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\ImportSteps.cs" />
     <Compile Include="Common\Logger.cs" />

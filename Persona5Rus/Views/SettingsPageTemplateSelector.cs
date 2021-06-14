@@ -10,14 +10,18 @@ namespace Persona5Rus.Views
 
         public DataTemplate SelectFileTemplate { get; set; }
 
+        public DataTemplate GameSelectionTemplate { get; set; }
+
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
             switch (item)
             {
-                case SelectFolderItem folderItem:
+                case SelectFolderItem _:
                     return SelectFolderTemplate;
-                case SelectFileItem fileItem:
+                case SelectFileItem _:
                     return SelectFileTemplate;
+                case GameTypeSelect _:
+                    return GameSelectionTemplate;
             }
 
             return null;

@@ -3,6 +3,7 @@ using Persona5Rus.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows.Input;
 
 namespace Persona5Rus.ViewModel
@@ -123,6 +124,47 @@ namespace Persona5Rus.ViewModel
         public event Action<SelectFileItem, string> PathChanged;
     }
 
+    internal sealed class ComboBoxItem<T> : BindableBase
+    {
+        public T SourceT { get; set; }
+
+        public string Value { get; set; }
+    }
+
+    internal class ComboBoxSelection<T> : SettingsItemBase
+    {
+        private ComboBoxItem<T> _selectedItem;
+
+        public ComboBoxSelection()
+        {
+            Items = new ObservableCollection<ComboBoxItem<T>>();
+        }
+
+        public ComboBoxItem<T> SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if (SetProperty(ref _selectedItem, value))
+                {
+                    if (_selectedItem != null)
+                    {
+                        ValueChanged?.Invoke(this, _selectedItem.SourceT);
+                    }
+                }
+            }
+        }
+
+        public ObservableCollection<ComboBoxItem<T>> Items { get; }
+
+        public event Action<ComboBoxSelection<T>, T> ValueChanged;
+    }
+
+    internal sealed class GameTypeSelect : ComboBoxSelection<Game>
+    {
+
+    }
+
     internal sealed class SettingsViewModel : BindableBase
     {
         private static readonly string BasePath = Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
@@ -138,6 +180,24 @@ namespace Persona5Rus.ViewModel
 
         private void Fill()
         {
+            var selectGame = new GameTypeSelect();
+            selectGame.Items.Add(new ComboBoxItem<Game>()
+            {
+                SourceT = Game.Persona5PS3,
+                Value = "Persona 5 - PS3"
+            });
+            selectGame.Items.Add(new ComboBoxItem<Game>()
+            {
+                SourceT = Game.Persona5PS4,
+                Value = "Persona 5 - PS4"
+            });
+            selectGame.SelectedItem = selectGame.Items.FirstOrDefault(i => i.SourceT == Settings.GameType);
+            selectGame.ValueChanged += (s, v) =>
+            {
+                Settings.GameType = v;
+            };
+            SettingsItems.Add(selectGame);
+
             var selectDataCPK = new SelectFolderItem()
             {
                 Header = "Путь к распакованному data.cpk",
@@ -151,7 +211,7 @@ namespace Persona5Rus.ViewModel
 
             var selectPsCPK = new SelectFolderItem()
             {
-                Header = "Путь к распакованному ps3.cpk",
+                Header = "Путь к распакованному ps3.cpk или ps4.cpk",
                 Path = Settings.PsCPKPath
             };
             selectPsCPK.PathChanged += (s, v) =>

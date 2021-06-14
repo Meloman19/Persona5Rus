@@ -14,11 +14,13 @@ namespace Persona5Rus.Common
         private readonly string tableText;
         private readonly Dictionary<string, Action<GameFile>> actions;
 
-        private Encoding oldEncoding = Global.OldEncoding();
-        private Encoding newEncoding = Global.NewEncoding();
+        private readonly Encoding oldEncoding;
+        private readonly Encoding newEncoding;
 
-        public TableImporter(string tableText)
+        public TableImporter(string tableText, Encoding oldEncoding, Encoding newEncoding)
         {
+            this.oldEncoding = oldEncoding ?? throw new ArgumentNullException(nameof(oldEncoding));
+            this.newEncoding = newEncoding ?? throw new ArgumentNullException(nameof(newEncoding));
             this.tableText = tableText;
             actions = new Dictionary<string, Action<GameFile>>()
             {

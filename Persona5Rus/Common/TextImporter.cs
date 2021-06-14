@@ -15,12 +15,16 @@ namespace Persona5Rus.Common
         private Dictionary<string, string> DUPLICATES = new Dictionary<string, string>();
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
 
-        private Encoding oldEncoding = Global.OldEncoding();
-        private Encoding newEncoding = Global.NewEncoding();
-        private Dictionary<char, int> charWidth = Global.NewFont().GetCharWidth(Global.NewEncoding());
+        private readonly Encoding oldEncoding;
+        private readonly Encoding newEncoding;
+        private readonly Dictionary<char, int> charWidth;
 
-        public TextImporter(string textPTPPath, string duplicatesFilePath)
+        public TextImporter(string textPTPPath, string duplicatesFilePath, Encoding oldEncoding, Encoding newEncoding, Dictionary<char, int> charWidth)
         {
+            this.oldEncoding = oldEncoding ?? throw new ArgumentNullException(nameof(oldEncoding));
+            this.newEncoding = newEncoding ?? throw new ArgumentNullException(nameof(newEncoding));
+            this.charWidth = charWidth ?? throw new ArgumentNullException(nameof(charWidth));
+
             string NAMEfile = Path.Combine(textPTPPath, "names.tsv");
             if (File.Exists(NAMEfile))
             {

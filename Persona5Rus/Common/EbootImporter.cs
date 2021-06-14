@@ -51,7 +51,6 @@ namespace Persona5Rus.Common
             (0xB7AE10, 0x10, "Лечение/Помощь"), // Heal/Support
             (0xB7AE20, 0x10, "Прямые команды"), // Direct Commands
             (0xB7AE68, 0x10, "Вся команда"), // All Members
-            
 
             //(0xB3FCB0, 0x08, "Безоп."), // Safe
             //(0xB3FCA0, 0x08, "Легко"), // Easy
@@ -167,12 +166,16 @@ namespace Persona5Rus.Common
 
         private Dictionary<string, Dictionary<(int, int), string>> import = new Dictionary<string, Dictionary<(int, int), string>>();
 
-        private Encoding oldEncoding = Global.OldEncoding();
-        private Encoding newEncoding = Global.NewEncoding();
-        private Dictionary<char, int> charWidth = Global.NewFont().GetCharWidth(Global.NewEncoding());
+        private readonly Encoding oldEncoding;
+        private readonly Encoding newEncoding;
+        private readonly Dictionary<char, int> charWidth;
 
-        public EbootImporter(string textPTPPath)
+        public EbootImporter(string textPTPPath, Encoding oldEncoding, Encoding newEncoding, Dictionary<char, int> charWidth)
         {
+            this.oldEncoding = oldEncoding ?? throw new ArgumentNullException(nameof(oldEncoding));
+            this.newEncoding = newEncoding ?? throw new ArgumentNullException(nameof(newEncoding));
+            this.charWidth = charWidth ?? throw new ArgumentNullException(nameof(charWidth));
+
             var translate = Path.Combine(textPTPPath, "eboot.tsv");
 
             var tranlateLines = File.ReadAllLines(translate)

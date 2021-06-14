@@ -12,7 +12,8 @@ namespace Persona5Rus.ViewModel
 {
     internal sealed class CreationViewModel : BindableBase
     {
-        private static readonly string SourceFontPath = Path.Combine(Global.DataDirectory, "font0.fnt");
+        private static readonly string SourcePS3FontPath = Path.Combine(Global.DataDirectory, "font0_ps3.fnt");
+        private static readonly string SourcePS4FontPath = Path.Combine(Global.DataDirectory, "font0_ps4.fnt");
         private static readonly string SourceWorkFilesPath = Path.Combine(Global.DataDirectory, "work_files.txt");
         private static readonly string SourceWorkFilesPath_BMD = Path.Combine(Global.DataDirectory, "BMD.txt");
         private static readonly string SourceWorkFilesPath_TABLE = Path.Combine(Global.DataDirectory, "TABLE.txt");
@@ -99,6 +100,10 @@ namespace Persona5Rus.ViewModel
 
         private IEnumerable<TaskProgress> GetTasks(Settings settings)
         {
+            PersonaEncoding oldEncoding = null;
+            PersonaEncoding newEncoding = null;
+            Dictionary<char, int> newCharWidth = null;
+
             yield return new TaskProgress()
             {
                 Title = "Предварительная подготовка...",
@@ -114,6 +119,27 @@ namespace Persona5Rus.ViewModel
                         Directory.Delete(Global.TempDirectory, true);
                     }
 
+                    switch (settings.GameType)
+                    {
+                        case Game.Persona5PS3:
+                            oldEncoding = Global.PS3_P5EngEncoding();
+                            newEncoding = Global.PS3_P5RusEncoding();
+                            newCharWidth = Global.PS3_P5RusFont().GetCharWidth(newEncoding);
+                            break;
+                        case Game.Persona5PS4:
+                            oldEncoding = Global.PS3_P5EngEncoding();
+                            newEncoding = Global.PS4_P5RusEncoding();
+                            newCharWidth = Global.PS4_P5RusFont().GetCharWidth(newEncoding);
+                            break;
+                    }
+
+                    if (oldEncoding == null ||
+                        newEncoding == null ||
+                        newCharWidth == null)
+                    {
+                        throw new Exception("NULL блэт");
+                    }
+
                     Thread.Sleep(1000);
 
                     progress.Report(1);
@@ -127,8 +153,8 @@ namespace Persona5Rus.ViewModel
                     Title = "Импортируем перевод...",
                     Action = progress =>
                     {
-                        TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath);
-                        TableImporter tableImporter = new TableImporter(TableTextPath);
+                        TextImporter textImporter = new TextImporter(BMDTextPath, BMDDuplicatesPath, oldEncoding, newEncoding, newCharWidth);
+                        TableImporter tableImporter = new TableImporter(TableTextPath, oldEncoding, newEncoding);
                         TextureImporter textureImporter = new TextureImporter(TexturePath);
 
                         var sourceFiles = GetSourceFiles_TextTextures(settings);
@@ -170,7 +196,17 @@ namespace Persona5Rus.ViewModel
 
                         var fontNewPath = Path.Combine(TempMod, "font", "font0.fnt");
                         Directory.CreateDirectory(Path.GetDirectoryName(fontNewPath));
-                        File.Copy(SourceFontPath, fontNewPath, true);
+                        switch (settings.GameType)
+                        {
+                            case Game.Persona5PS3:
+                                File.Copy(SourcePS3FontPath, fontNewPath, true);
+                                break;
+                            case Game.Persona5PS4:
+                                File.Copy(SourcePS4FontPath, fontNewPath, true);
+                                break;
+                            default:
+                                throw new Exception("Неизвестный тип игры...");
+                        }
                     }
                 };
             }
@@ -182,13 +218,33 @@ namespace Persona5Rus.ViewModel
                     Title = "Патчим EBOOT.BIN",
                     Action = progress =>
                     {
-                        EbootImporter ebootImporter = new EbootImporter(BMDTextPath);
+                        switch (settings.GameType)
+                        {
+                            case Game.Persona5PS3:
+                                {
+                                    EbootImporter ebootImporter = new EbootImporter(BMDTextPath, oldEncoding, newEncoding, newCharWidth);
 
-                        Directory.CreateDirectory(TempEBOOT);
+                                    Directory.CreateDirectory(TempEBOOT);
 
-                        var binPath = Path.Combine(TempEBOOT, "EBOOT.BIN");
-                        File.Copy(settings.EBOOTPath, binPath, true);
-                        ebootImporter.ImportBIN(binPath);
+                                    var binPath = Path.Combine(TempEBOOT, "EBOOT.BIN");
+                                    File.Copy(settings.EBOOTPath, binPath, true);
+                                    ebootImporter.ImportBIN(binPath);
+                                }
+                                break;
+                            case Game.Persona5PS4:
+                                {
+                                    EbootImporterPS4 ebootImporter = new EbootImporterPS4(BMDTextPath, oldEncoding, newEncoding, newCharWidth);
+
+                                    Directory.CreateDirectory(TempEBOOT);
+
+                                    var binPath = Path.Combine(TempEBOOT, "EBOOT.BIN");
+                                    File.Copy(settings.EBOOTPath, binPath, true);
+                                    ebootImporter.ImportBIN(binPath);
+                                }
+                                break;
+                            default:
+                                throw new Exception("Неизвестный тип игры...");
+                        }
                     }
                 };
             }
@@ -200,7 +256,10 @@ namespace Persona5Rus.ViewModel
                     Title = "Импорт субтитров в видео...",
                     Action = progress =>
                     {
-                        UsmImporter usmImporter = new UsmImporter(TempUSM, MovieSubtitlesFilePath);
+                        UsmImporter usmImporter = new UsmImporter(TempUSM,
+                            MovieSubtitlesFilePath,
+                            oldEncoding,
+                            newEncoding);
 
                         var sourceFiles = GetSourceFiles_Movie(settings);
 
